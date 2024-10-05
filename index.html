@@ -3,62 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Player</title>
-    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <title>AMP3 Music Player</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f8f8f8, #e0e0e0);
+            margin: 0;
+            padding: 20px;
             color: #333;
+        }
+        .player {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+        }
+        h1 {
             text-align: center;
+            color: #333;
+            font-size: 24px;
+            margin: 0;
+            font-weight: bold;
+        }
+        h2 {
+            text-align: center;
+            color: #666;
+            font-size: 20px;
+            margin: 10px 0;
+        }
+        img {
+            max-width: 100%;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background: #1DB954; /* Spotify green */
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background: #1aa34a; /* Darker green on hover */
+        }
+        .track-list {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
         }
         .track {
-            cursor: pointer;
             padding: 10px;
-            border: 1px solid #ccc;
-            margin: 5px;
-            background-color: #fff;
-            border-radius: 5px;
+            border-radius: 10px;
+            margin: 5px 0;
+            background: #f1f1f1;
+            transition: background 0.3s ease;
+            cursor: pointer;
         }
         .track:hover {
-            background-color: #e0e0e0;
+            background: #e1e1e1;
+        }
+        audio {
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
-    <h1>Music Player</h1>
-    <button id="share-button">Share</button>
-    <div id="track-list"></div>
-    <audio id="audio-player" controls style="display:none;"></audio>
 
-    <script>
-        const socket = io();
+<div class="player">
+    <h1 id="album-title"></h1>
+    <h2 id="artist"></h2>
+    <img id="cover-image" src="" alt="Cover Art">
 
-        document.getElementById('share-button').onclick = function() {
-            socket.emit('create_party');
-        };
+    <button id="import-btn">Import AMP3</button>
+    <div class="track-list" id="track-list"></div>
 
-        socket.on('party_created', (data) => {
-            alert(`Party created! Share this ID: ${data.party_id}`);
-            // Store the party ID for later use
-            window.currentPartyId = data.party_id;
-        });
+    <audio id="audio-player" controls>
+        Your browser does not support the audio element.
+    </audio>
+</div>
 
-        socket.on('track_uploaded', (data) => {
-            // Add the uploaded track to the track list
-            const trackList = document.getElementById('track-list');
+<script>
+    let tracks = []; // Array to hold track information
+
+    // Function to fetch metadata and set up the player
+    function setupPlayer(metadata) {
+        // Set album title and artist
+        document.getElementById('album-title').innerText = metadata.album.title;
+        document.getElementById('artist').innerText = metadata.album.artist;
+
+        // Set cover image to Folder.jpg
+        const coverImagePath = 'Folder.jpg';
+        document.getElementById('cover-image').src = coverImagePath;
+
+        // Populate track list
+        const trackList = document.getElementById('track-list');
+        trackList.innerHTML = ''; // Clear previous tracks
+        tracks = []; // Clear previous tracks array
+        metadata.album.tracks.forEach(track => {
             const trackElement = document.createElement('div');
-            trackElement.className = 'track';
-            trackElement.innerText = data.filename;
-            trackElement.onclick = () => playTrack(data.filename);
+            trackElement.classList.add('track');
+            trackElement.innerText = `${track.track_number}. ${track.title} (${track.duration})`;
+            trackElement.onclick = () => playTrack(track.file); // Call playTrack with track file
             trackList.appendChild(trackElement);
+            // Store track information
+            tracks.push({ title: track.title, file: track.file });
         });
+    }
 
-        function playTrack(filename) {
+    // Function to play the selected track
+    function playTrack(trackFile) {
+        // Find the blob URL for the track file and play it
+        const track = tracks.find(t => t.file === trackFile);
+        if (track) {
             const audioPlayer = document.getElementById('audio-player');
-            audioPlayer.src = `/tracks/${filename}`;
+            audioPlayer.src = URL.createObjectURL(track.blob);
             audioPlayer.play();
         }
-    </script>
+    }
+
+    // Function to import the AMP3 file and read its contents
+    async function importAMP3() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.amp3';
+        input.onchange = async (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                // Create a FileReader to read the file
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const zipData = new Uint8Array(e.target.result);
+                    const zip = await JSZip.loadAsync(zipData);
+                    
+                    // Extract metadata.json
+                    const metadataFile = await zip.file("metadata.json").async("text");
+                    const metadata = JSON.parse(metadataFile);
+                    setupPlayer(metadata);
+                    
+                    // Store track information for playback
+                    tracks = await Promise.all(metadata.album.tracks.map(async (track) => {
+                        const trackBlob = await zip.file(track.file).async("blob");
+                        return {
+                            title: track.title,
+                            file: track.file,
+                            blob: trackBlob // Store the blob for playback
+                        };
+                    }));
+                    
+                    // Load Folder.jpg for the cover image
+                    const coverBlob = await zip.file("Folder.jpg").async("blob");
+                    document.getElementById('cover-image').src = URL.createObjectURL(coverBlob);
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        };
+        input.click();
+    }
+
+    // Set up event listener for the import button
+    document.getElementById('import-btn').onclick = importAMP3;
+</script>
+
 </body>
 </html>
