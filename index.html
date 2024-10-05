@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Player</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            text-align: center;
+        }
+        .track {
+            cursor: pointer;
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin: 5px;
+            background-color: #fff;
+            border-radius: 5px;
+        }
+        .track:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Music Player</h1>
+    <button id="share-button">Share</button>
+    <div id="track-list"></div>
+    <audio id="audio-player" controls style="display:none;"></audio>
+
+    <script>
+        const socket = io();
+
+        document.getElementById('share-button').onclick = function() {
+            socket.emit('create_party');
+        };
+
+        socket.on('party_created', (data) => {
+            alert(`Party created! Share this ID: ${data.party_id}`);
+            // Store the party ID for later use
+            window.currentPartyId = data.party_id;
+        });
+
+        socket.on('track_uploaded', (data) => {
+            // Add the uploaded track to the track list
+            const trackList = document.getElementById('track-list');
+            const trackElement = document.createElement('div');
+            trackElement.className = 'track';
+            trackElement.innerText = data.filename;
+            trackElement.onclick = () => playTrack(data.filename);
+            trackList.appendChild(trackElement);
+        });
+
+        function playTrack(filename) {
+            const audioPlayer = document.getElementById('audio-player');
+            audioPlayer.src = `/tracks/${filename}`;
+            audioPlayer.play();
+        }
+    </script>
+</body>
+</html>
