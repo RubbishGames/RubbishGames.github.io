@@ -77,8 +77,8 @@
     </div>
     <script>
         async function fetchData() {
-            let playersResponse = await fetch('https://raw.githubusercontent.com/RubbishGames.github.io/players.json');
-            let chatResponse = await fetch('https://raw.githubusercontent.com/RubbishGames.github.io/chat_logs.json');
+           let playersResponse = await fetch('https://raw.githubusercontent.com/RubbishGames/RubbishGames.github.io/main/players.json');
+           let chatResponse = await fetch('https://raw.githubusercontent.com/RubbishGames/RubbishGames.github.io/main/chat_logs.json');
             let players = await playersResponse.json();
             let chatLogs = await chatResponse.json();
 
