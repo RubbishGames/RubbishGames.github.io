@@ -1,62 +1,85 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generation & Star Sign Finder</title>
     <style>
         body {
-            background-color: black;
-            color: white;
+            background-color: #121212;
+            color: #1DB954;
             font-family: Arial, sans-serif;
             text-align: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
         h2 {
-            font-size: 20px;
+            font-size: 2rem;
+            margin-bottom: 20px;
         }
         input, button {
-            font-size: 16px;
-            padding: 5px;
-            margin: 5px;
+            font-size: 1.2rem;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            margin: 10px;
+        }
+        input {
+            background-color: #333;
+            color: white;
         }
         button {
-            background-color: white;
+            background-color: #1DB954;
             color: black;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #17a347;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 1.5rem;
         }
     </style>
     <script>
         function findDetails() {
-            var dob = document.getElementById("dob").value;
-            if (!dob.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                document.getElementById("result").innerHTML = "Enter a valid date (YYYY-MM-DD).";
+            const dob = new Date(document.getElementById("dob").value);
+            if (isNaN(dob)) {
+                document.getElementById("result").innerHTML = "Please enter a valid date.";
                 return;
-            }
-            var parts = dob.split("-");
-            var year = parseInt(parts[0], 10);
-            var month = parseInt(parts[1], 10);
-            var day = parseInt(parts[2], 10);
+            }const year = dob.getFullYear();
+        let generation = "";
+        if (year >= 2025) generation = "Generation Beta";
+        else if (year >= 2013) generation = "Generation Alpha";
+        else if (year >= 1997) generation = "Generation Z";
+        else if (year >= 1981) generation = "Millennials";
+        else if (year >= 1965) generation = "Generation X";
+        else if (year >= 1946) generation = "Baby Boomers";
+        else generation = "Silent Generation";
+        
+        const month = dob.getMonth() + 1;
+        const day = dob.getDate();
+        let zodiac = "";
+        const zodiacSigns = [
+            ["Capricorn", 19], ["Aquarius", 18], ["Pisces", 20], ["Aries", 19], ["Taurus", 20], ["Gemini", 20],
+            ["Cancer", 22], ["Leo", 22], ["Virgo", 22], ["Libra", 22], ["Scorpio", 21], ["Sagittarius", 21]
+        ];
+        zodiac = (day > zodiacSigns[month - 1][1]) ? zodiacSigns[month % 12][0] : zodiacSigns[month - 1][0];
+        
+        document.getElementById("result").innerHTML = `You belong to <b>${generation}</b> and your star sign is <b>${zodiac}</b>.`;
+    }
+</script>
 
-            var generation = "Silent Generation";
-            if (year >= 2025) generation = "Generation Beta";
-            else if (year >= 2013) generation = "Generation Alpha";
-            else if (year >= 1997) generation = "Generation Z";
-            else if (year >= 1981) generation = "Millennials";
-            else if (year >= 1965) generation = "Generation X";
-            else if (year >= 1946) generation = "Baby Boomers";
-
-            var zodiacSigns = [
-                ["Capricorn", 19], ["Aquarius", 18], ["Pisces", 20], ["Aries", 19], ["Taurus", 20], ["Gemini", 20],
-                ["Cancer", 22], ["Leo", 22], ["Virgo", 22], ["Libra", 22], ["Scorpio", 21], ["Sagittarius", 21]
-            ];
-            var zodiac = (day > zodiacSigns[month - 1][1]) ? zodiacSigns[month % 12][0] : zodiacSigns[month - 1][0];
-
-            document.getElementById("result").innerHTML = "Generation: " + generation + "<br>Star Sign: " + zodiac;
-        }
-    </script>
 </head>
 <body>
     <h2>Generation & Star Sign Finder</h2>
-    <label for="dob">Enter DOB (YYYY-MM-DD):</label>
-    <input type="text" id="dob">
+    <label for="dob">Enter your Date of Birth:</label>
+    <input type="date" id="dob">
     <button onclick="findDetails()">Find</button>
     <p id="result"></p>
 </body>
