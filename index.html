@@ -2,103 +2,62 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cross-Play Dashboard</title>
+    <title>Generation & Star Sign Finder</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #1b1b1b;
+            background-color: black;
             color: white;
-            margin: 0;
-            padding: 0;
+            font-family: Arial, sans-serif;
+            text-align: center;
         }
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px;
-            background: linear-gradient(90deg, #ff3d00, #1976d2);
+        h2 {
+            font-size: 20px;
         }
-        .navbar h1 {
-            margin: 0;
-            font-size: 24px;
+        input, button {
+            font-size: 16px;
+            padding: 5px;
+            margin: 5px;
         }
-        .container {
-            display: flex;
-            flex-direction: row;
-            padding: 20px;
-        }
-        .sidebar {
-            width: 250px;
-            background: #252525;
-            padding: 15px;
-            border-radius: 10px;
-        }
-        .main-content {
-            flex-grow: 1;
-            background: #333;
-            padding: 20px;
-            margin-left: 15px;
-            border-radius: 10px;
-        }
-        .player-list, .chat-log {
-            background: #444;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-        .player-list h2, .chat-log h2 {
-            margin: 0;
-            font-size: 18px;
+        button {
+            background-color: white;
+            color: black;
         }
     </style>
+    <script>
+        function findDetails() {
+            var dob = document.getElementById("dob").value;
+            if (!dob.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                document.getElementById("result").innerHTML = "Enter a valid date (YYYY-MM-DD).";
+                return;
+            }
+            var parts = dob.split("-");
+            var year = parseInt(parts[0], 10);
+            var month = parseInt(parts[1], 10);
+            var day = parseInt(parts[2], 10);
+
+            var generation = "Silent Generation";
+            if (year >= 2025) generation = "Generation Beta";
+            else if (year >= 2013) generation = "Generation Alpha";
+            else if (year >= 1997) generation = "Generation Z";
+            else if (year >= 1981) generation = "Millennials";
+            else if (year >= 1965) generation = "Generation X";
+            else if (year >= 1946) generation = "Baby Boomers";
+
+            var zodiacSigns = [
+                ["Capricorn", 19], ["Aquarius", 18], ["Pisces", 20], ["Aries", 19], ["Taurus", 20], ["Gemini", 20],
+                ["Cancer", 22], ["Leo", 22], ["Virgo", 22], ["Libra", 22], ["Scorpio", 21], ["Sagittarius", 21]
+            ];
+            var zodiac = (day > zodiacSigns[month - 1][1]) ? zodiacSigns[month % 12][0] : zodiacSigns[month - 1][0];
+
+            document.getElementById("result").innerHTML = "Generation: " + generation + "<br>Star Sign: " + zodiac;
+        }
+    </script>
 </head>
 <body>
-    <div class="navbar">
-        <h1>Cross-Play Dashboard</h1>
-    </div>
-    <div class="container">
-        <div class="sidebar">
-            <h2>Navigation</h2>
-            <ul>
-                <li><a href="#players" style="color: white;">Active Players</a></li>
-                <li><a href="#chat" style="color: white;">Chat Logs</a></li>
-            </ul>
-        </div>
-        <div class="main-content">
-            <div class="player-list" id="players">
-                <h2>Active Players</h2>
-                <ul id="player-list"></ul>
-            </div>
-            <div class="chat-log" id="chat">
-                <h2>Chat Logs</h2>
-                <div id="chat-messages"></div>
-            </div>
-        </div>
-    </div>
-    <script>
-        async function fetchData() {
-           let playersResponse = await fetch('https://raw.githubusercontent.com/RubbishGames/RubbishGames.github.io/main/players.json');
-           let chatResponse = await fetch('https://raw.githubusercontent.com/RubbishGames/RubbishGames.github.io/main/chat_logs.json');
-            let players = await playersResponse.json();
-            let chatLogs = await chatResponse.json();
-
-            let playerList = document.getElementById("player-list");
-            playerList.innerHTML = "";
-            players.forEach(player => {
-                let li = document.createElement("li");
-                li.textContent = `${player.username} (${player.platform})`;
-                playerList.appendChild(li);
-            });
-
-            let chatMessages = document.getElementById("chat-messages");
-            chatMessages.innerHTML = "";
-            chatLogs.forEach(log => {
-                let p = document.createElement("p");
-                p.textContent = `[${log.timestamp}] ${log.username}: ${log.message}`;
-                chatMessages.appendChild(p);
-            });
-        }
-        setInterval(fetchData, 5000);
-    </script>
+    <h2>Generation & Star Sign Finder</h2>
+    <label for="dob">Enter DOB (YYYY-MM-DD):</label>
+    <input type="text" id="dob">
+    <button onclick="findDetails()">Find</button>
+    <p id="result"></p>
 </body>
 </html>
