@@ -1,86 +1,128 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generation & Star Sign Finder</title>
+    <title>Personal Dashboard</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         body {
-            background-color: #121212;
-            color: #1DB954;
             font-family: Arial, sans-serif;
+            background: #f4f4f4;
             text-align: center;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            padding: 20px;
         }
-        h2 {
-            font-size: 2rem;
-            margin-bottom: 20px;
+        .container {
+            max-width: 800px;
+            margin: auto;
         }
-        input, button {
-            font-size: 1.2rem;
+        h1 {
+            color: #6a0dad;
+        }
+        .search-bar {
+            margin: 20px 0;
+        }
+        .search-bar input {
+            width: 80%;
             padding: 10px;
-            border: none;
-            border-radius: 5px;
-            margin: 10px;
+            font-size: 16px;
         }
-        input {
-            background-color: #333;
-            color: white;
+        .tiles {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
         }
-        button {
-            background-color: #1DB954;
-            color: black;
-            cursor: pointer;
-            transition: background 0.3s;
+        .tile {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 120px;
+            transition: transform 0.2s;
         }
-        button:hover {
-            background-color: #17a347;
+        .tile:hover {
+            transform: scale(1.1);
         }
-        #result {
+        .tile a {
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            display: block;
+        }
+        .add-tile {
+            background: #6a0dad;
+            color: #fff;
+            padding: 10px;
             margin-top: 20px;
-            font-size: 1.5rem;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .hidden {
+            display: none;
         }
     </style>
-    <script>
-        function findDetails() {
-            const dob = new Date(document.getElementById("dob").value);
-            if (isNaN(dob)) {
-                document.getElementById("result").innerHTML = "Please enter a valid date.";
-                return;
-            }const year = dob.getFullYear();
-        let generation = "";
-        if (year >= 2025) generation = "Generation Beta";
-        else if (year >= 2013) generation = "Generation Alpha";
-        else if (year >= 1997) generation = "Generation Z";
-        else if (year >= 1981) generation = "Millennials";
-        else if (year >= 1965) generation = "Generation X";
-        else if (year >= 1946) generation = "Baby Boomers";
-        else generation = "Silent Generation";
-        
-        const month = dob.getMonth() + 1;
-        const day = dob.getDate();
-        let zodiac = "";
-        const zodiacSigns = [
-            ["Capricorn", 19], ["Aquarius", 18], ["Pisces", 20], ["Aries", 19], ["Taurus", 20], ["Gemini", 20],
-            ["Cancer", 22], ["Leo", 22], ["Virgo", 22], ["Libra", 22], ["Scorpio", 21], ["Sagittarius", 21]
-        ];
-        zodiac = (day > zodiacSigns[month - 1][1]) ? zodiacSigns[month % 12][0] : zodiacSigns[month - 1][0];
-        
-        document.getElementById("result").innerHTML = `You belong to <b>${generation}</b> and your star sign is <b>${zodiac}</b>.`;
-    }
-</script>
-
 </head>
 <body>
-    <h2>Generation & Star Sign Finder</h2>
-    <label for="dob">Enter your Date of Birth:</label>
-    <input type="date" id="dob">
-    <button onclick="findDetails()">Find</button>
-    <p id="result"></p>
+    <div id="login-container">
+        <h1>Login with Google</h1>
+        <div id="g_id_onload"
+            data-client_id="1049227155112-quk27gl5a3p359mjt3l9arov4h0ektub.apps.googleusercontent.com"
+            data-callback="handleCredentialResponse">
+        </div>
+        <div class="g_id_signin" data-type="standard"></div>
+    </div>
+
+    <div id="dashboard" class="hidden">
+        <div class="container">
+            <h1 id="greeting"></h1>
+            <div class="search-bar">
+                <input type="text" placeholder="Search Google..." onkeydown="search(event)">
+            </div>
+            <div class="tiles" id="tiles">
+                <div class="tile"><a href="https://mail.google.com" target="_blank">Gmail</a></div>
+                <div class="tile"><a href="https://www.youtube.com" target="_blank">YouTube</a></div>
+                <div class="tile"><a href="https://www.reddit.com" target="_blank">Reddit</a></div>
+                <div class="tile"><a href="https://www.spotify.com" target="_blank">Spotify</a></div>
+                <div class="tile"><a href="https://www.netflix.com" target="_blank">Netflix</a></div>
+                <div class="tile"><a href="https://www.github.com" target="_blank">GitHub</a></div>
+            </div>
+            <button class="add-tile" onclick="addTile()">Add Tile</button>
+        </div>
+    </div>
+
+    <script>
+        function search(event) {
+            if (event.key === "Enter") {
+                const query = event.target.value;
+                window.location.href = `https://www.google.com/search?q=${query}`;
+            }
+        }
+        
+        function addTile() {
+            const url = prompt("Enter the URL:");
+            const name = prompt("Enter the Name:");
+            if (url && name) {
+                const tileContainer = document.getElementById("tiles");
+                const newTile = document.createElement("div");
+                newTile.classList.add("tile");
+                newTile.innerHTML = `<a href="${url}" target="_blank">${name}</a>`;
+                tileContainer.appendChild(newTile);
+            }
+        }
+        
+        function handleCredentialResponse(response) {
+            try {
+                const data = JSON.parse(atob(response.credential.split("."))[1]);
+                document.getElementById("greeting").innerText = `Good Afternoon, ${data.name}`;
+                document.getElementById("login-container").classList.add("hidden");
+                document.getElementById("dashboard").classList.remove("hidden");
+            } catch (error) {
+                console.error("Error processing login response:", error);
+            }
+        }
+    </script>
 </body>
 </html>
