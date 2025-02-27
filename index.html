@@ -115,8 +115,12 @@
         
         function handleCredentialResponse(response) {
             try {
-                const data = JSON.parse(atob(response.credential.split("."))[1]);
-                document.getElementById("greeting").innerText = `Good Afternoon, ${data.name}`;
+                const tokenParts = response.credential.split(".");
+                if (tokenParts.length !== 3) {
+                    throw new Error("Invalid JWT structure.");
+                }
+                const payload = JSON.parse(atob(tokenParts[1].replace(/-/g, "+").replace(/_/g, "/")));
+                document.getElementById("greeting").innerText = `Good Afternoon, ${payload.name}`;
                 document.getElementById("login-container").classList.add("hidden");
                 document.getElementById("dashboard").classList.remove("hidden");
             } catch (error) {
