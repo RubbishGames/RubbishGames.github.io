@@ -1,201 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScraplandsSMP - Join Our Minecraft Server!</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts - Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #1a202c; /* Dark background */
-            color: #e2e8f0; /* Light text */
-        }
-        .container {
-            max-width: 1200px;
-        }
-        .hero-section {
-            background-image: url('https://placehold.co/1200x400/2d3748/cbd5e0?text=ScraplandsSMP+Banner'); /* Placeholder for a custom banner */
-            background-size: cover;
-            background-position: center;
-            min-height: 400px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            position: relative;
-        }
-        .hero-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6); /* Dark overlay for text readability */
-        }
-        .hero-content {
-            z-index: 10;
-            padding: 2rem;
-            border-radius: 0.75rem;
-            background-color: rgba(0, 0, 0, 0.4); /* Slightly transparent background for content */
-        }
-        .btn-primary {
-            background-color: #48bb78; /* Green */
-            color: #ffffff;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            transition: background-color 0.3s ease;
-        }
-        .btn-primary:hover {
-            background-color: #38a169; /* Darker green on hover */
-        }
-        .feature-card {
-            background-color: #2d3748; /* Darker grey for cards */
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-        }
-        .feature-card:hover {
-            transform: translateY(-5px);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Skate — Global Release Countdown</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #121212;
+      color: #c6d4df;
+      font-family: "Roboto", Arial, sans-serif;
+    }
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+    .steam-header {
+      background-color: #171a21;
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid #2a475e;
+    }
+    .steam-header h1 {
+      margin: 0;
+      font-family: "Roboto Condensed", Arial, sans-serif;
+      font-size: 36px;
+      color: #58a6ff;
+    }
+    .leaflet-popup-content-wrapper {
+      background: #2a475e;
+      color: #c6d4df;
+      border-radius: 6px;
+    }
+    .leaflet-popup-tip {
+      background: #2a475e;
+    }
+    .countdown-popup {
+      font-size: 16px;
+      font-weight: 500;
+      color: #f5f5f5;
+    }
+    .store-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .store-buttons a {
+      display: block;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: bold;
+      text-decoration: none;
+      text-align: center;
+      transition: background 0.2s;
+    }
+    .steam-btn {
+      background: #1b2838;
+      color: #c6d4df;
+    }
+    .steam-btn:hover {
+      background: #2a475e;
+    }
+    .ea-btn {
+      background: #ff4747;
+      color: #fff;
+    }
+    .ea-btn:hover {
+      background: #ff5c5c;
+    }
+    .epic-btn {
+      background: #2a2a2a;
+      color: #fff;
+    }
+    .epic-btn:hover {
+      background: #3c3c3c;
+    }
+  </style>
 </head>
-<body class="antialiased">
+<body>
+  <div class="steam-header">
+    <h1>Skate — Global Release Countdown</h1>
+  </div>
 
-    <!-- Header Section -->
-    <header class="bg-gray-900 py-4 shadow-lg">
-        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center px-4">
-            <h1 class="text-3xl font-bold text-green-400 mb-2 md:mb-0">ScraplandsSMP</h1>
-            <nav>
-                <ul class="flex space-x-4">
-                    <li><a href="#about" class="text-gray-300 hover:text-green-400 font-medium transition-colors duration-300">About</a></li>
-                    <li><a href="#features" class="text-gray-300 hover:text-green-400 font-medium transition-colors duration-300">Features</a></li>
-                    <li><a href="#join" class="text-gray-300 hover:text-green-400 font-medium transition-colors duration-300">Join Us</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
+  <div id="map"></div>
 
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <div class="hero-overlay"></div>
-        <div class="hero-content">
-            <h2 class="text-5xl md:text-6xl font-extrabold text-white leading-tight mb-4 animate-fade-in-down">
-                Welcome to ScraplandsSMP!
-            </h2>
-            <p class="text-xl md:text-2xl text-gray-200 mb-8 max-w-2xl mx-auto animate-fade-in-up">
-                A unique Minecraft Survival Multiplayer experience where creativity meets community.
-            </p>
-            <a href="#join" class="btn-primary inline-block animate-bounce-in">
-                Join Now!
-            </a>
-        </div>
-    </section>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const releases = {
+      pst: { coords: [37.7749, -122.4194], time: "2025-09-16T10:00:00-07:00", label: "PDT" },
+      mdt: { coords: [39.7392, -104.9903], time: "2025-09-16T11:00:00-06:00", label: "MDT" },
+      edt: { coords: [40.7128, -74.0060],  time: "2025-09-16T13:00:00-04:00", label: "EDT" },
+      brt: { coords: [-23.5505, -46.6333], time: "2025-09-16T14:00:00-03:00", label: "BRT" },
+      bst: { coords: [51.5074, -0.1278],   time: "2025-09-16T18:00:00+01:00", label: "BST" },
+      cest:{ coords: [48.8566, 2.3522],    time: "2025-09-16T19:00:00+02:00", label: "CEST" },
+      trt: { coords: [41.0082, 28.9784],   time: "2025-09-16T20:00:00+03:00", label: "TRT" },
+      ist: { coords: [28.6139, 77.2090],   time: "2025-09-16T22:30:00+05:30", label: "IST" },
+      utc7:{ coords: [13.7563, 100.5018],  time: "2025-09-17T00:00:00+07:00", label: "UTC+7" },
+      jst: { coords: [35.6895, 139.6917],  time: "2025-09-17T02:00:00+09:00", label: "JST" },
+      aedt:{ coords: [-33.8688, 151.2093], time: "2025-09-17T04:00:00+11:00", label: "AEDT" },
+      nzdt:{ coords: [-36.8485, 174.7633], time: "2025-09-17T05:00:00+12:00", label: "NZDT" }
+    };
 
-    <!-- About Section -->
-    <section id="about" class="py-16 bg-gray-800">
-        <div class="container mx-auto px-4 text-center">
-            <h3 class="text-4xl font-bold text-green-400 mb-8">What is ScraplandsSMP?</h3>
-            <p class="text-lg text-gray-300 leading-relaxed max-w-3xl mx-auto">
-                ScraplandsSMP is a vibrant and friendly Minecraft server focused on a semi-vanilla survival experience. We offer a balanced gameplay environment where players can build, explore, and collaborate without excessive modifications. Our community is welcoming, and we encourage unique builds, exciting adventures, and lasting friendships.
-            </p>
-            <p class="text-lg text-gray-300 leading-relaxed max-w-3xl mx-auto mt-4">
-                Whether you're a seasoned builder, an intrepid explorer, or just looking for a fun place to hang out, ScraplandsSMP has something for everyone.
-            </p>
-        </div>
-    </section>
+    const map = L.map('map').setView([20, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: false,
+      maxZoom: 5,
+      minZoom: 2
+    }).addTo(map);
 
-    <!-- Features Section -->
-    <section id="features" class="py-16 bg-gray-900">
-        <div class="container mx-auto px-4">
-            <h3 class="text-4xl font-bold text-green-400 text-center mb-12">Server Features</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Feature 1 -->
-                <div class="feature-card">
-                    <h4 class="text-2xl font-semibold text-white mb-4">Semi-Vanilla Survival</h4>
-                    <p class="text-gray-300">Experience classic Minecraft survival with quality-of-life plugins that enhance gameplay without altering the core experience.</p>
-                </div>
-                <!-- Feature 2 -->
-                <div class="feature-card">
-                    <h4 class="text-2xl font-semibold text-white mb-4">Friendly Community</h4>
-                    <p class="text-gray-300">Join a welcoming and active community. Make new friends, team up, or just chat!</p>
-                </div>
-                <!-- Feature 3 -->
-                <div class="feature-card">
-                    <h4 class="text-2xl font-semibold text-white mb-4">Grief Protection</h4>
-                    <p class="text-gray-300">Your builds are safe! We utilize robust anti-griefing measures to protect your creations.</p>
-                </div>
-                <!-- Feature 4 -->
-                <div class="feature-card">
-                    <h4 class="text-2xl font-semibold text-white mb-4">Regular Events</h4>
-                    <p class="text-gray-300">Participate in fun server events, challenges, and competitions with exciting rewards.</p>
-                </div>
-                <!-- Feature 5 -->
-                <div class="feature-card">
-                    <h4 class="text-2xl font-semibold text-white mb-4">Active Staff</h4>
-                    <p class="text-gray-300">Our dedicated staff team is always available to help, answer questions, and ensure a smooth experience.</p>
-                </div>
-                <!-- Feature 6 -->
-                <div class="feature-card">
-                    <h4 class="text-2xl font-semibold text-white mb-4">Optimized Performance</h4>
-                    <p class="text-gray-300">Enjoy a lag-free experience with our optimized server performance, even during peak hours.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+    const markers = {};
 
-    <!-- Join Us Section -->
-    <section id="join" class="py-16 bg-gray-800">
-        <div class="container mx-auto px-4 text-center">
-            <h3 class="text-4xl font-bold text-green-400 mb-8">Ready to Join the Adventure?</h3>
-            <p class="text-lg text-gray-300 mb-6">
-                Connect to ScraplandsSMP using the server address below:
-            </p>
-            <div class="bg-gray-700 p-6 rounded-lg shadow-xl inline-block">
-                <p class="text-3xl font-mono text-white mb-4">
-                    <span class="font-bold">Server Address:</span> <code id="serverAddress" class="bg-gray-600 px-3 py-1 rounded-md">ScraplandsSMP.aternos.me</code>
-                </p>
-                <button id="copyButton" class="btn-primary mt-4">
-                    Copy Server Address
-                </button>
-                <p id="copyMessage" class="text-green-300 mt-2 hidden">Copied to clipboard!</p>
-            </div>
-            <p class="text-lg text-gray-300 mt-8">
-                We can't wait to see you in ScraplandsSMP!
-            </p>
-        </div>
-    </section>
+    for (const [id, data] of Object.entries(releases)) {
+      const marker = L.marker(data.coords).addTo(map);
+      marker.bindPopup(`<div class="countdown-popup" id="${id}">${data.label}: Loading...</div>`);
+      markers[id] = marker;
+    }
 
-    <!-- Footer Section -->
-    <footer class="bg-gray-900 py-8 mt-16">
-        <div class="container mx-auto px-4 text-center text-gray-400">
-            <p>&copy; 2025 ScraplandsSMP. All rights reserved.</p>
-            <p class="mt-2">Made with ❤️ for the Minecraft community.</p>
-        </div>
-    </footer>
+    function updateCountdown() {
+      const now = new Date().getTime();
 
-    <script>
-        // JavaScript for copying server address to clipboard
-        document.getElementById('copyButton').addEventListener('click', function() {
-            const serverAddress = document.getElementById('serverAddress').innerText;
-            const tempInput = document.createElement('textarea');
-            tempInput.value = serverAddress;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
+      for (const [id, data] of Object.entries(releases)) {
+        const countDownDate = new Date(data.time).getTime();
+        const distance = countDownDate - now;
 
-            const copyMessage = document.getElementById('copyMessage');
-            copyMessage.classList.remove('hidden');
-            setTimeout(() => {
-                copyMessage.classList.add('hidden');
-            }, 2000); // Hide after 2 seconds
-        });
-    </script>
+        let display;
+        if (distance <= 0) {
+          display = `
+            <div class="countdown-popup">${data.label}: Released!</div>
+            <div class="store-buttons">
+              <a class="steam-btn" href="https://store.steampowered.com/app/3354750/skate/" target="_blank">Steam</a>
+              <a class="ea-btn" href="https://www.ea.com/games/skate/skate" target="_blank">EA App</a>
+              <a class="epic-btn" href="https://store.epicgames.com/en-US/p/skate-2ddbd6" target="_blank">Epic Games</a>
+            </div>`;
+        } else {
+          const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+          display = `${data.label}: `;
+          if (days > 0) display += `${days}d `;
+          display += `${hours}h ${minutes}m ${seconds}s`;
+          display = `<div class="countdown-popup">${display}</div>`;
+        }
+
+        markers[id].setPopupContent(display);
+      }
+    }
+
+    setInterval(updateCountdown, 1000);
+    updateCountdown(); 
+  </script>
 </body>
 </html>
