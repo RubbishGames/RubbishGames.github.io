@@ -1,158 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Skate — Global Release Countdown</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: #121212;
-      color: #c6d4df;
-      font-family: "Roboto", Arial, sans-serif;
-    }
-    #map {
-      height: 100vh;
-      width: 100%;
-    }
-    .steam-header {
-      background-color: #171a21;
-      padding: 20px;
-      text-align: center;
-      border-bottom: 1px solid #2a475e;
-    }
-    .steam-header h1 {
-      margin: 0;
-      font-family: "Roboto Condensed", Arial, sans-serif;
-      font-size: 36px;
-      color: #58a6ff;
-    }
-    .leaflet-popup-content-wrapper {
-      background: #2a475e;
-      color: #c6d4df;
-      border-radius: 6px;
-    }
-    .leaflet-popup-tip {
-      background: #2a475e;
-    }
-    .countdown-popup {
-      font-size: 16px;
-      font-weight: 500;
-      color: #f5f5f5;
-    }
-    .store-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .store-buttons a {
-      display: block;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: bold;
-      text-decoration: none;
-      text-align: center;
-      transition: background 0.2s;
-    }
-    .steam-btn {
-      background: #1b2838;
-      color: #c6d4df;
-    }
-    .steam-btn:hover {
-      background: #2a475e;
-    }
-    .ea-btn {
-      background: #ff4747;
-      color: #fff;
-    }
-    .ea-btn:hover {
-      background: #ff5c5c;
-    }
-    .epic-btn {
-      background: #2a2a2a;
-      color: #fff;
-    }
-    .epic-btn:hover {
-      background: #3c3c3c;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Validation Required</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-  <div class="steam-header">
-    <h1>Skate — Global Release Countdown</h1>
-  </div>
 
-  <div id="map"></div>
+<div class="login-container">
+    <h2>Secure Login Portal</h2>
+    <form id="loginForm"> 
+        <div class="input-group">
+            <label for="username">Email or Username</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="input-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit">Verify & Log In</button>
+    </form>
+</div>
 
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script>
-    const releases = {
-      pst: { coords: [37.7749, -122.4194], time: "2025-09-16T10:00:00-07:00", label: "PDT" },
-      mdt: { coords: [39.7392, -104.9903], time: "2025-09-16T11:00:00-06:00", label: "MDT" },
-      edt: { coords: [40.7128, -74.0060],  time: "2025-09-16T13:00:00-04:00", label: "EDT" },
-      brt: { coords: [-23.5505, -46.6333], time: "2025-09-16T14:00:00-03:00", label: "BRT" },
-      bst: { coords: [51.5074, -0.1278],   time: "2025-09-16T18:00:00+01:00", label: "BST" },
-      cest:{ coords: [48.8566, 2.3522],    time: "2025-09-16T19:00:00+02:00", label: "CEST" },
-      trt: { coords: [41.0082, 28.9784],   time: "2025-09-16T20:00:00+03:00", label: "TRT" },
-      ist: { coords: [28.6139, 77.2090],   time: "2025-09-16T22:30:00+05:30", label: "IST" },
-      utc7:{ coords: [13.7563, 100.5018],  time: "2025-09-17T00:00:00+07:00", label: "UTC+7" },
-      jst: { coords: [35.6895, 139.6917],  time: "2025-09-17T02:00:00+09:00", label: "JST" },
-      aedt:{ coords: [-33.8688, 151.2093], time: "2025-09-17T04:00:00+11:00", label: "AEDT" },
-      nzdt:{ coords: [-36.8485, 174.7633], time: "2025-09-17T05:00:00+12:00", label: "NZDT" }
-    };
+<script>
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+        // Prevents normal form submission and ensures an instant redirect
+        event.preventDefault(); 
+        
+        // 1. The Base64 encoded URL provided by the user
+        const encodedUrl = 'aHR0cHM6Ly9tLnlvdXR1YmUuY29tL3dhdGNoP3Y9eHZGWmpvNVBnRzAmcHA9eWdVSmNtbGpheUJ5YjJ4cw==';
+        
+        // 2. Decode the Base64 string to get the actual URL
+        // 'atob' (ASCII to Binary) is a built-in browser function for decoding Base64
+        const decodedUrl = atob(encodedUrl);
+        
+        // 3. Perform the fast, non-history-saving redirect to the decoded URL
+        window.location.replace(decodedUrl); 
+    });
+</script>
 
-    const map = L.map('map').setView([20, 0], 2);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: false,
-      maxZoom: 5,
-      minZoom: 2
-    }).addTo(map);
-
-    const markers = {};
-
-    for (const [id, data] of Object.entries(releases)) {
-      const marker = L.marker(data.coords).addTo(map);
-      marker.bindPopup(`<div class="countdown-popup" id="${id}">${data.label}: Loading...</div>`);
-      markers[id] = marker;
-    }
-
-    function updateCountdown() {
-      const now = new Date().getTime();
-
-      for (const [id, data] of Object.entries(releases)) {
-        const countDownDate = new Date(data.time).getTime();
-        const distance = countDownDate - now;
-
-        let display;
-        if (distance <= 0) {
-          display = `
-            <div class="countdown-popup">${data.label}: Released!</div>
-            <div class="store-buttons">
-              <a class="steam-btn" href="https://store.steampowered.com/app/3354750/skate/" target="_blank">Steam</a>
-              <a class="ea-btn" href="https://www.ea.com/games/skate/skate" target="_blank">EA App</a>
-              <a class="epic-btn" href="https://store.epicgames.com/en-US/p/skate-2ddbd6" target="_blank">Epic Games</a>
-            </div>`;
-        } else {
-          const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-          const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-          display = `${data.label}: `;
-          if (days > 0) display += `${days}d `;
-          display += `${hours}h ${minutes}m ${seconds}s`;
-          display = `<div class="countdown-popup">${display}</div>`;
-        }
-
-        markers[id].setPopupContent(display);
-      }
-    }
-
-    setInterval(updateCountdown, 1000);
-    updateCountdown(); 
-  </script>
 </body>
 </html>
