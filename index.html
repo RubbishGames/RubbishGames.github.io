@@ -3,91 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Account Validation Required</title>
+    <title>Specific Device ID</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .login-container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 300px;
-        }
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #333;
-        }
-        .input-group {
-            margin-bottom: 15px;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .input-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
+        body { font-family: system-ui, sans-serif; padding: 2rem; line-height: 1.5; background: #f4f4f9; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .label { font-weight: bold; color: #555; }
+        .value { color: #007bff; margin-bottom: 1rem; font-size: 1.2rem; }
+        hr { border: 0; border-top: 1px solid #eee; margin: 1rem 0; }
     </style>
 </head>
 <body>
 
-<div class="login-container">
-    <h2>Secure Login Portal</h2>
-    <form id="loginForm"> 
-        <div class="input-group">
-            <label for="username">Email or Username</label>
-            <input type="text" id="username" name="username" required>
-        </div>
-        <div class="input-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required>
-        </div>
-        <button type="submit">Verify & Log In</button>
-    </form>
+<div class="container">
+    <h2>Device Identity Report</h2>
+    <hr>
+    <div class="label">Detected Model/Type:</div>
+    <div id="model" class="value">Identifying...</div>
+
+    <div class="label">Screen Resolution:</div>
+    <div id="resolution" class="value">--</div>
+
+    <div class="label">Operating System:</div>
+    <div id="os" class="value">--</div>
 </div>
 
 <script>
-    document.getElementById('loginForm').addEventListener('submit', function(event) {
-        // Prevents normal form submission and ensures an instant redirect
-        event.preventDefault(); 
-        
-        // 1. The Base64 encoded URL provided by the user
-        const encodedUrl = 'aHR0cHM6Ly9tLnlvdXR1YmUuY29tL3dhdGNoP3Y9eHZGWmpvNVBnRzAmcHA9eWdVSmNtbGpheUJ5YjJ4cw==';
-        
-        // 2. Decode the Base64 string to get the actual URL
-        // 'atob' (ASCII to Binary) is a built-in browser function for decoding Base64
-        const decodedUrl = atob(encodedUrl);
-        
-        // 3. Perform the fast, non-history-saving redirect to the decoded URL
-        window.location.replace(decodedUrl); 
-    });
+    function getDetailedModel() {
+        const ua = navigator.userAgent;
+        const width = window.screen.width;
+        const height = window.screen.height;
+        const ratio = window.devicePixelRatio;
+        let model = "Unknown Device";
+
+        // Logic for iOS Devices (which all report as "iPhone")
+        if (/iPhone/.test(ua)) {
+            if (width === 430 && height === 932) model = "iPhone 15/14 Pro Max";
+            else if (width === 393 && height === 852) model = "iPhone 15/14 Pro";
+            else if (width === 390 && height === 844) model = "iPhone 14/13/12";
+            else model = "iPhone (Recent Model)";
+        } 
+        // Logic for Android (Often includes the model code in UA)
+        else if (/Android/.test(ua)) {
+            const match = ua.match(/Android\s+[\d\.]+;\s+([^;]+)\s+Build/);
+            model = match ? match[1] : "Android Device";
+        }
+        // Logic for Mac/Windows
+        else if (/Macintosh/.test(ua)) model = "MacBook / iMac";
+        else if (/Windows/.test(ua)) model = "Windows PC";
+
+        document.getElementById('model').innerText = model;
+        document.getElementById('resolution').innerText = `${width} x ${height} (Ratio: ${ratio})`;
+        document.getElementById('os').innerText = navigator.platform;
+    }
+
+    window.onload = getDetailedModel;
 </script>
 
 </body>
