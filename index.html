@@ -3,137 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seed Explorer Chat</title>
+    <title>Global Seeded Chat</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --bg: #0f172a; --panel: #1e293b; --accent: #38bdf8; --text: #f1f5f9; }
-        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* Sidebar Styles */
+        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; }
         #sidebar { width: 260px; background: #0b1120; border-right: 1px solid #334155; display: flex; flex-direction: column; padding: 15px; }
-        .sidebar-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin-bottom: 15px; font-weight: bold; }
-        .room-item { padding: 10px; background: var(--panel); border-radius: 6px; margin-bottom: 8px; cursor: pointer; font-size: 0.9rem; transition: 0.2s; border: 1px solid transparent; }
-        .room-item:hover { border-color: var(--accent); }
-        .btn-random { background: var(--accent); color: #000; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 20px; }
-
-        /* Chat Area Styles */
+        .room-item { padding: 10px; background: var(--panel); border-radius: 6px; margin-bottom: 8px; cursor: pointer; font-size: 0.8rem; }
         #main-chat { flex: 1; display: flex; flex-direction: column; }
-        header { padding: 1rem; background: var(--panel); border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
-        #chat-box { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; }
-        
-        .msg { padding: 0.6rem 1rem; border-radius: 12px; max-width: 80%; line-height: 1.4; }
-        .msg.me { background: var(--accent); color: #000; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .msg.them { background: var(--panel); align-self: flex-start; border-bottom-left-radius: 2px; }
-        .sender { font-size: 0.65rem; font-weight: bold; display: block; opacity: 0.8; }
-
-        footer { padding: 1rem; background: var(--panel); display: flex; gap: 0.5rem; }
-        input { flex: 1; padding: 0.75rem; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; outline: none; }
-        button#send-btn { padding: 0.75rem 1.5rem; border-radius: 8px; border: none; background: var(--accent); color: #0f172a; font-weight: bold; cursor: pointer; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .msg { padding: 0.6rem; border-radius: 8px; max-width: 80%; font-size: 0.9rem; }
+        .msg.me { background: var(--accent); color: #000; align-self: flex-end; }
+        .msg.them { background: var(--panel); align-self: flex-start; }
+        .sender { font-size: 0.6rem; font-weight: bold; display: block; opacity: 0.7; }
+        footer { padding: 1rem; background: var(--panel); display: flex; gap: 10px; }
+        input { flex: 1; padding: 10px; border-radius: 5px; border: none; background: #0f172a; color: white; }
+        button { padding: 10px; background: var(--accent); border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <aside id="sidebar">
-    <div class="sidebar-title">Explore</div>
-    <button class="btn-random" onclick="teleport()">🎲 Teleport to Random Room</button>
-    
-    <div class="sidebar-title">Recent Rooms</div>
+    <button style="width:100%; padding:10px; margin-bottom:20px;" onclick="teleport()">🎲 New Random Room</button>
+    <div style="font-size:0.7rem; opacity:0.5; margin-bottom:10px;">RECENT ROOMS</div>
     <div id="room-list"></div>
 </aside>
 
 <main id="main-chat">
-    <header>
-        <div>Seed: <span id="room-title" style="color:var(--accent)">...</span></div>
-        <div style="font-size: 0.7rem; opacity: 0.6;">Your Device: <span id="my-id">...</span></div>
+    <header style="padding:10px; background:var(--panel); border-bottom:1px solid #333; display:flex; justify-content:space-between;">
+        <span>Room: <b id="room-title"></b></span>
+        <span id="status" style="font-size:0.7rem; color:orange;">Connecting...</span>
     </header>
-
     <div id="chat-box"></div>
-
     <footer>
-        <input type="text" id="msg-input" placeholder="Type a message..." autocomplete="off">
+        <input type="text" id="msg-input" placeholder="Say hello...">
         <button id="send-btn">Send</button>
     </footer>
 </main>
 
 <script>
-    // --- IDENTITY SETUP ---
-    let deviceId = localStorage.getItem('chat_device_id') || 'DEV-' + Math.random().toString(36).substr(2, 6).toUpperCase();
-    localStorage.setItem('chat_device_id', deviceId);
-    document.getElementById('my-id').innerText = deviceId;
+    const seed = window.location.hash.substring(1) || Math.random().toString(36).substring(7);
+    if (!window.location.hash) window.location.hash = seed;
+    document.getElementById('room-title').innerText = seed;
 
-    // --- ROOM LOGIC ---
-    let currentSeed = window.location.hash.substring(1);
-    if (!currentSeed) {
-        currentSeed = Math.random().toString(36).substring(7);
-        window.location.hash = currentSeed;
-    }
-    document.getElementById('room-title').innerText = currentSeed;
-    saveRoomToHistory(currentSeed);
+    // Device ID is stored so it stays consistent for you
+    const deviceId = localStorage.getItem('chat_id') || 'USER-' + Math.random().toString(36).substring(7).toUpperCase();
+    localStorage.setItem('chat_id', deviceId);
 
-    function teleport() {
-        const newSeed = Math.random().toString(36).substring(7);
-        window.location.hash = newSeed;
-        location.reload(); // Reload to initialize new Peer connection
-    }
+    // To find others, we use a predictable naming convention: seed-slot
+    // We try to occupy a "slot" (0-10) in the room.
+    let mySlot = 0;
+    let peer = null;
+    const connections = {};
 
-    function saveRoomToHistory(seed) {
-        let history = JSON.parse(localStorage.getItem('room_history') || '[]');
-        if (!history.includes(seed)) {
-            history.unshift(seed);
-            history = history.slice(0, 10); // Keep last 10
-            localStorage.setItem('room_history', JSON.stringify(history));
-        }
-        renderHistory();
-    }
+    function initPeer(slot) {
+        mySlot = slot;
+        const peerId = `room-${seed}-slot-${slot}`;
+        peer = new Peer(peerId);
 
-    function renderHistory() {
-        const list = document.getElementById('room-list');
-        const history = JSON.parse(localStorage.getItem('room_history') || '[]');
-        list.innerHTML = history.map(s => `
-            <div class="room-item" onclick="window.location.hash='${s}'; location.reload();">
-                # ${s} ${s === currentSeed ? '⭐' : ''}
-            </div>
-        `).join('');
-    }
-
-    // --- PEERJS CONNECTION ---
-    const peer = new Peer(`${currentSeed}-${deviceId}`);
-    const activeConns = {};
-
-    peer.on('open', (id) => {
-        appendMessage('System', `Connected to room: ${currentSeed}`, 'them');
-    });
-
-    peer.on('connection', (conn) => {
-        conn.on('data', (data) => {
-            appendMessage(conn.peer.split('-').slice(1).join('-'), data, 'them');
+        peer.on('open', () => {
+            document.getElementById('status').innerText = "Online (Slot " + slot + ")";
+            document.getElementById('status').style.color = "lightgreen";
+            findPeers();
         });
-        activeConns[conn.peer] = conn;
-    });
 
-    // --- MESSAGING ---
-    const input = document.getElementById('msg-input');
-    const sendBtn = document.getElementById('send-btn');
+        peer.on('error', (err) => {
+            if (err.type === 'unavailable-id') {
+                initPeer(slot + 1); // Try next slot if this one is taken
+            }
+        });
+
+        peer.on('connection', (conn) => {
+            setupConn(conn);
+        });
+    }
+
+    function findPeers() {
+        // Look for other users in slots 0-10
+        for (let i = 0; i <= 10; i++) {
+            if (i === mySlot) continue;
+            const targetId = `room-${seed}-slot-${i}`;
+            const conn = peer.connect(targetId);
+            setupConn(conn);
+        }
+    }
+
+    function setupConn(conn) {
+        conn.on('open', () => {
+            connections[conn.peer] = conn;
+        });
+        conn.on('data', (data) => {
+            appendMessage(data.user, data.msg, 'them');
+        });
+    }
 
     function sendMessage() {
-        const text = input.value.trim();
-        if (!text) return;
-        Object.values(activeConns).forEach(c => { if(c.open) c.send(text); });
-        appendMessage('Me', text, 'me');
-        input.value = '';
+        const msg = document.getElementById('msg-input').value;
+        if (!msg) return;
+        
+        Object.values(connections).forEach(conn => {
+            if (conn.open) conn.send({ user: deviceId, msg: msg });
+        });
+
+        appendMessage(deviceId, msg, 'me');
+        document.getElementById('msg-input').value = '';
     }
 
-    function appendMessage(sender, text, type) {
+    function appendMessage(user, text, type) {
         const box = document.getElementById('chat-box');
         const div = document.createElement('div');
         div.className = `msg ${type}`;
-        div.innerHTML = `<span class="sender">${sender}</span>${text}`;
+        div.innerHTML = `<span class="sender">${user}</span>${text}`;
         box.appendChild(div);
         box.scrollTop = box.scrollHeight;
     }
 
-    sendBtn.addEventListener('click', sendMessage);
-    input.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
+    function teleport() {
+        window.location.hash = Math.random().toString(36).substring(7);
+        location.reload();
+    }
+
+    document.getElementById('send-btn').onclick = sendMessage;
+    initPeer(0); // Start trying to join at slot 0
 </script>
 </body>
 </html>
