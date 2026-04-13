@@ -3,40 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Seeded Chat</title>
+    <title>SeedChat Explorer</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --bg: #0f172a; --panel: #1e293b; --accent: #38bdf8; --text: #f1f5f9; }
-        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; }
-        #sidebar { width: 260px; background: #0b1120; border-right: 1px solid #334155; display: flex; flex-direction: column; padding: 15px; }
-        .room-item { padding: 10px; background: var(--panel); border-radius: 6px; margin-bottom: 8px; cursor: pointer; font-size: 0.8rem; }
-        #main-chat { flex: 1; display: flex; flex-direction: column; }
-        #chat-box { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
-        .msg { padding: 0.6rem; border-radius: 8px; max-width: 80%; font-size: 0.9rem; }
-        .msg.me { background: var(--accent); color: #000; align-self: flex-end; }
-        .msg.them { background: var(--panel); align-self: flex-start; }
-        .sender { font-size: 0.6rem; font-weight: bold; display: block; opacity: 0.7; }
-        footer { padding: 1rem; background: var(--panel); display: flex; gap: 10px; }
-        input { flex: 1; padding: 10px; border-radius: 5px; border: none; background: #0f172a; color: white; }
-        button { padding: 10px; background: var(--accent); border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        * { box-sizing: border-box; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
+        /* Sidebar & Mobile Overlay */
+        #sidebar { 
+            width: 280px; background: #0b1120; border-right: 1px solid #334155; 
+            display: flex; flex-direction: column; padding: 15px; 
+            transition: transform 0.3s ease; z-index: 1000;
+        }
+        @media (max-width: 768px) {
+            #sidebar { position: fixed; height: 100%; transform: translateX(-100%); }
+            #sidebar.open { transform: translateX(0); }
+        }
+
+        /* UI Elements */
+        .sidebar-header { font-size: 0.75rem; color: var(--accent); margin-top: 20px; font-weight: bold; }
+        .room-item { padding: 12px; background: var(--panel); border-radius: 8px; margin-top: 8px; cursor: pointer; font-size: 0.85rem; border: 1px solid transparent; }
+        .room-item:hover { border-color: var(--accent); }
+        .tag-live { color: #4ade80; font-size: 0.7rem; float: right; font-weight: bold; }
+
+        #main-chat { flex: 1; display: flex; flex-direction: column; width: 100%; }
+        header { padding: 12px; background: var(--panel); border-bottom: 1px solid #334155; display: flex; align-items: center; gap: 15px; }
+        #menu-toggle { font-size: 1.5rem; cursor: pointer; display: none; background: none; border: none; color: white; }
+        @media (max-width: 768px) { #menu-toggle { display: block; } }
+
+        #chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+        .msg { padding: 8px 14px; border-radius: 12px; max-width: 85%; font-size: 0.95rem; line-height: 1.4; }
+        .msg.me { background: var(--accent); color: #000; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .msg.them { background: var(--panel); align-self: flex-start; border-bottom-left-radius: 2px; }
+        .sender { font-size: 0.65rem; font-weight: bold; display: block; opacity: 0.7; }
+
+        footer { padding: 12px; background: var(--panel); display: flex; gap: 8px; }
+        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; outline: none; }
+        button#send-btn { padding: 12px 20px; border-radius: 8px; border: none; background: var(--accent); color: #0f172a; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <aside id="sidebar">
-    <button style="width:100%; padding:10px; margin-bottom:20px;" onclick="teleport()">🎲 New Random Room</button>
-    <div style="font-size:0.7rem; opacity:0.5; margin-bottom:10px;">RECENT ROOMS</div>
-    <div id="room-list"></div>
+    <button style="width:100%; padding:12px; border-radius:8px; border:none; background:var(--accent); color:black; font-weight:bold; cursor:pointer;" onclick="teleport()">🎲 New Random Room</button>
+    
+    <div class="sidebar-header">DISCOVERED ROOMS</div>
+    <div id="discovered-list" style="margin-bottom: 20px;">
+        <div style="font-size: 0.8rem; opacity: 0.5; padding: 10px;">Scanning for life...</div>
+    </div>
+
+    <div class="sidebar-header">YOUR HISTORY</div>
+    <div id="history-list"></div>
 </aside>
 
 <main id="main-chat">
-    <header style="padding:10px; background:var(--panel); border-bottom:1px solid #333; display:flex; justify-content:space-between;">
-        <span>Room: <b id="room-title"></b></span>
-        <span id="status" style="font-size:0.7rem; color:orange;">Connecting...</span>
+    <header>
+        <button id="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div style="flex:1">
+            <div style="font-size: 0.7rem; opacity: 0.6;">Room Seed</div>
+            <div id="room-title" style="font-weight:bold; color:var(--accent)">...</div>
+        </div>
+        <div id="status" style="font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; background: #334155;">Offline</div>
     </header>
+
     <div id="chat-box"></div>
+
     <footer>
-        <input type="text" id="msg-input" placeholder="Say hello...">
+        <input type="text" id="msg-input" placeholder="Message..." autocomplete="off">
         <button id="send-btn">Send</button>
     </footer>
 </main>
@@ -46,67 +80,74 @@
     if (!window.location.hash) window.location.hash = seed;
     document.getElementById('room-title').innerText = seed;
 
-    // Device ID is stored so it stays consistent for you
-    const deviceId = localStorage.getItem('chat_id') || 'USER-' + Math.random().toString(36).substring(7).toUpperCase();
+    const deviceId = localStorage.getItem('chat_id') || 'DEV-' + Math.random().toString(36).substring(7).toUpperCase();
     localStorage.setItem('chat_id', deviceId);
 
-    // To find others, we use a predictable naming convention: seed-slot
-    // We try to occupy a "slot" (0-10) in the room.
-    let mySlot = 0;
-    let peer = null;
+    const discoveredRooms = new Set();
     const connections = {};
+    let peer = null;
 
+    // --- P2P CORE LOGIC ---
     function initPeer(slot) {
-        mySlot = slot;
         const peerId = `room-${seed}-slot-${slot}`;
         peer = new Peer(peerId);
 
         peer.on('open', () => {
-            document.getElementById('status').innerText = "Online (Slot " + slot + ")";
-            document.getElementById('status').style.color = "lightgreen";
-            findPeers();
-        });
-
-        peer.on('error', (err) => {
-            if (err.type === 'unavailable-id') {
-                initPeer(slot + 1); // Try next slot if this one is taken
+            updateStatus(`Online: Slot ${slot}`, "#4ade80");
+            saveHistory(seed);
+            
+            // 1. Connect to others in this room
+            for(let i=0; i<5; i++) {
+                if(i !== slot) setupConn(peer.connect(`room-${seed}-slot-${i}`));
             }
+
+            // 2. Broadcast presence to the Global Lobby (Slot 0 of 'lobby' seed)
+            setInterval(() => {
+                const lobbyConn = peer.connect('room-lobby-slot-0');
+                lobbyConn.on('open', () => {
+                    lobbyConn.send({ type: 'HEARTBEAT', room: seed });
+                    setTimeout(() => lobbyConn.close(), 1000);
+                });
+            }, 10000);
         });
 
         peer.on('connection', (conn) => {
-            setupConn(conn);
+            if (seed === 'lobby') {
+                conn.on('data', data => {
+                    if (data.type === 'HEARTBEAT') updateDiscovery(data.room);
+                });
+            } else {
+                setupConn(conn);
+            }
         });
-    }
 
-    function findPeers() {
-        // Look for other users in slots 0-10
-        for (let i = 0; i <= 10; i++) {
-            if (i === mySlot) continue;
-            const targetId = `room-${seed}-slot-${i}`;
-            const conn = peer.connect(targetId);
-            setupConn(conn);
-        }
+        peer.on('error', (err) => {
+            if (err.type === 'unavailable-id') initPeer(slot + 1);
+        });
     }
 
     function setupConn(conn) {
-        conn.on('open', () => {
-            connections[conn.peer] = conn;
-        });
         conn.on('data', (data) => {
-            appendMessage(data.user, data.msg, 'them');
+            if (data.msg) appendMessage(data.user, data.msg, 'them');
         });
+        connections[conn.peer] = conn;
     }
 
-    function sendMessage() {
-        const msg = document.getElementById('msg-input').value;
-        if (!msg) return;
-        
-        Object.values(connections).forEach(conn => {
-            if (conn.open) conn.send({ user: deviceId, msg: msg });
-        });
+    // --- UI & UTILS ---
+    function updateDiscovery(roomName) {
+        if (roomName === 'lobby') return;
+        discoveredRooms.add(roomName);
+        const list = document.getElementById('discovered-list');
+        list.innerHTML = Array.from(discoveredRooms).map(r => `
+            <div class="room-item" onclick="joinRoom('${r}')"># ${r} <span class="tag-live">LIVE</span></div>
+        `).join('');
+    }
 
-        appendMessage(deviceId, msg, 'me');
-        document.getElementById('msg-input').value = '';
+    function saveHistory(s) {
+        let h = JSON.parse(localStorage.getItem('chat_h') || '[]');
+        if (!h.includes(s)) h.unshift(s);
+        localStorage.setItem('chat_h', JSON.stringify(h.slice(0, 5)));
+        document.getElementById('history-list').innerHTML = h.map(r => `<div class="room-item" onclick="joinRoom('${r}')"># ${r}</div>`).join('');
     }
 
     function appendMessage(user, text, type) {
@@ -118,13 +159,27 @@
         box.scrollTop = box.scrollHeight;
     }
 
-    function teleport() {
-        window.location.hash = Math.random().toString(36).substring(7);
-        location.reload();
+    function sendMessage() {
+        const input = document.getElementById('msg-input');
+        if (!input.value) return;
+        Object.values(connections).forEach(c => c.open && c.send({user: deviceId, msg: input.value}));
+        appendMessage('Me', input.value, 'me');
+        input.value = '';
     }
 
+    function updateStatus(txt, color) {
+        const s = document.getElementById('status');
+        s.innerText = txt;
+        s.style.color = color;
+    }
+
+    function joinRoom(r) { window.location.hash = r; location.reload(); }
+    function teleport() { joinRoom(Math.random().toString(36).substring(7)); }
+
     document.getElementById('send-btn').onclick = sendMessage;
-    initPeer(0); // Start trying to join at slot 0
+    document.getElementById('msg-input').onkeypress = e => e.key === 'Enter' && sendMessage();
+
+    initPeer(0);
 </script>
 </body>
 </html>
