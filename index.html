@@ -1,197 +1,533 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SeedChat Explorer</title>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <style>
-        :root { --bg: #0f172a; --panel: #1e293b; --accent: #38bdf8; --text: #f1f5f9; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RubbishGames — Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Permanent+Marker&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#E9E2CF;
+    --paper-dark:#DCD3B9;
+    --ink:#1B1A17;
+    --ink-soft:#3A362E;
+    --tape-red:#C73E3A;
+    --highlight:#D8E84A;
+    --muted:#7A7466;
+    --line:#1B1A1733;
+  }
 
-        /* Sidebar & Mobile Layout */
-        #sidebar { 
-            width: 300px; background: #0b1120; border-right: 1px solid #334155; 
-            display: flex; flex-direction: column; padding: 15px; overflow-y: auto;
-            transition: transform 0.3s ease; z-index: 1000;
-        }
-        @media (max-width: 768px) {
-            #sidebar { position: fixed; height: 100%; transform: translateX(-100%); width: 85%; }
-            #sidebar.open { transform: translateX(0); box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
-        }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
 
-        .sidebar-header { font-size: 0.7rem; color: var(--accent); margin-top: 25px; font-weight: 800; letter-spacing: 1px; }
-        .room-item { padding: 14px; background: var(--panel); border-radius: 10px; margin-top: 8px; cursor: pointer; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid transparent; }
-        .room-item:active { background: #334155; }
-        .tag-live { color: #4ade80; font-size: 0.7rem; font-weight: bold; }
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
 
-        /* Main Chat Area */
-        #main-chat { flex: 1; display: flex; flex-direction: column; width: 100%; position: relative; }
-        header { padding: 15px; background: var(--panel); border-bottom: 1px solid #334155; display: flex; align-items: center; gap: 15px; }
-        #menu-toggle { font-size: 1.5rem; cursor: pointer; display: none; background: none; border: none; color: white; padding: 5px; }
-        @media (max-width: 768px) { #menu-toggle { display: block; } }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Space Mono', monospace;
+    background-image:
+      radial-gradient(var(--ink-soft) 0.6px, transparent 0.6px);
+    background-size:18px 18px;
+    background-attachment:fixed;
+    opacity:1;
+  }
 
-        #chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 10px 14px; border-radius: 15px; max-width: 85%; font-size: 0.95rem; line-height: 1.4; position: relative; }
-        .msg.me { background: var(--accent); color: #000; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .msg.them { background: var(--panel); align-self: flex-start; border-bottom-left-radius: 2px; }
-        .sender { font-size: 0.6rem; font-weight: bold; display: block; opacity: 0.7; margin-bottom: 3px; }
+  ::selection{ background:var(--highlight); color:var(--ink); }
 
-        /* Footer Controls */
-        footer { padding: 15px; background: var(--panel); display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #334155; }
-        .input-row { display: flex; gap: 8px; }
-        input { flex: 1; padding: 14px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 1rem; }
-        .btn { padding: 14px 18px; border-radius: 10px; border: none; background: var(--accent); color: #0f172a; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
-        .btn-paste { background: #64748b; color: white; }
-        .btn:active { opacity: 0.7; }
-    </style>
+  a{ color:inherit; }
+  a:focus-visible, button:focus-visible{
+    outline:3px solid var(--tape-red);
+    outline-offset:3px;
+  }
+
+  .wrap{
+    max-width:980px;
+    margin:0 auto;
+    padding:0 24px;
+  }
+
+  /* ---------- tape counter ---------- */
+  #counter{
+    position:fixed;
+    top:14px;
+    right:14px;
+    z-index:50;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Space Mono',monospace;
+    font-size:12px;
+    letter-spacing:1px;
+    padding:6px 10px;
+    border-radius:2px;
+    box-shadow:2px 2px 0 var(--tape-red);
+  }
+  #counter span{ color:var(--highlight); }
+  @media (max-width:640px){ #counter{ font-size:10px; padding:5px 8px; top:8px; right:8px;} }
+
+  /* ---------- hazard divider ---------- */
+  .hazard{
+    height:14px;
+    background:repeating-linear-gradient(
+      45deg,
+      var(--ink) 0 16px,
+      var(--highlight) 16px 32px
+    );
+    border-top:2px solid var(--ink);
+    border-bottom:2px solid var(--ink);
+  }
+
+  /* ---------- header / hero ---------- */
+  header{
+    padding:64px 0 48px;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .stamp{
+    font-family:'Anton', sans-serif;
+    font-size:clamp(48px, 11vw, 116px);
+    line-height:0.86;
+    letter-spacing:-1px;
+    text-transform:uppercase;
+    color:var(--ink);
+    transform:rotate(-1.2deg);
+    margin:0 0 6px;
+  }
+  .stamp em{
+    font-style:normal;
+    color:var(--paper);
+    background:var(--tape-red);
+    padding:0 10px;
+    box-decoration-break:clone;
+    -webkit-box-decoration-break:clone;
+  }
+
+  .handle-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+    margin:18px 0 8px;
+  }
+  .chip{
+    font-size:12px;
+    letter-spacing:1px;
+    background:var(--ink);
+    color:var(--paper);
+    padding:5px 10px;
+    border-radius:999px;
+    text-decoration:none;
+    white-space:nowrap;
+  }
+  .chip.alt{ background:transparent; color:var(--ink); border:1.5px solid var(--ink); }
+
+  .scrawl{
+    font-family:'Permanent Marker', cursive;
+    color:var(--tape-red);
+    font-size:clamp(16px,2.6vw,22px);
+    transform:rotate(-1deg);
+    display:inline-block;
+    margin-top:4px;
+  }
+
+  .lede{
+    max-width:60ch;
+    color:var(--ink-soft);
+    line-height:1.6;
+    margin-top:18px;
+    font-size:14px;
+  }
+
+  /* ---------- taped clip ---------- */
+  .clip{
+    position:relative;
+    background:var(--paper-dark);
+    padding:14px;
+    margin:40px 0 8px;
+    border:1.5px solid var(--ink);
+    box-shadow:6px 6px 0 var(--ink);
+    transform:rotate(-0.5deg);
+  }
+  .clip::before, .clip::after{
+    content:"";
+    position:absolute;
+    width:64px;
+    height:22px;
+    background:linear-gradient(180deg, #00000010, transparent), #d8cdaedd;
+    border:1px solid #00000022;
+    top:-12px;
+  }
+  .clip::before{ left:24px; transform:rotate(-6deg); }
+  .clip::after{ right:24px; transform:rotate(5deg); }
+
+  .clip-label{
+    font-family:'Permanent Marker', cursive;
+    font-size:15px;
+    color:var(--ink);
+    margin:0 0 10px;
+    transform:rotate(-0.6deg);
+  }
+
+  .video-frame{
+    position:relative;
+    width:100%;
+    aspect-ratio:16/9;
+    background:#0d0c0a;
+    border:1px solid var(--ink);
+  }
+  .video-frame iframe{
+    position:absolute; inset:0; width:100%; height:100%; border:0;
+  }
+
+  .caption-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:10px;
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:0.5px;
+  }
+
+  /* ---------- sections ---------- */
+  section{ padding:56px 0; }
+  .section-tag{
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:var(--tape-red);
+    margin:0 0 6px;
+  }
+  h2{
+    font-family:'Anton', sans-serif;
+    text-transform:uppercase;
+    font-size:clamp(28px, 5vw, 42px);
+    margin:0 0 28px;
+    letter-spacing:-0.5px;
+  }
+
+  /* ---------- channel cards ---------- */
+  .channels{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:22px;
+  }
+  @media (max-width:680px){ .channels{ grid-template-columns:1fr; } }
+
+  .card{
+    background:var(--paper);
+    border:1.5px solid var(--ink);
+    padding:22px 20px 20px;
+    position:relative;
+    box-shadow:5px 5px 0 var(--ink);
+    transition:transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .card:hover{ transform:translate(-3px,-3px); box-shadow:8px 8px 0 var(--ink); }
+
+  .card .pin{
+    position:absolute;
+    top:-9px; left:18px;
+    width:18px; height:18px;
+    background:var(--tape-red);
+    border-radius:50%;
+    border:1.5px solid var(--ink);
+  }
+
+  .card h3{
+    font-family:'Anton', sans-serif;
+    text-transform:uppercase;
+    font-size:24px;
+    margin:6px 0 2px;
+    letter-spacing:-0.3px;
+  }
+  .card .sub{
+    font-size:11px;
+    letter-spacing:1px;
+    color:var(--muted);
+    margin-bottom:14px;
+    display:block;
+  }
+  .card p{
+    font-size:13px;
+    line-height:1.6;
+    color:var(--ink-soft);
+    margin:0 0 18px;
+  }
+  .tags{
+    display:flex; flex-wrap:wrap; gap:6px; margin-bottom:18px;
+  }
+  .tag{
+    font-size:10.5px;
+    letter-spacing:0.5px;
+    background:var(--highlight);
+    border:1px solid var(--ink);
+    padding:3px 8px;
+  }
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    letter-spacing:1px;
+    text-decoration:none;
+    color:var(--paper);
+    background:var(--ink);
+    padding:10px 16px;
+    border:1.5px solid var(--ink);
+  }
+  .btn:hover{ background:var(--tape-red); border-color:var(--tape-red); }
+  .btn::after{ content:"↗"; }
+
+  /* ---------- about ---------- */
+  .about-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:30px;
+    align-items:start;
+  }
+  @media (max-width:680px){ .about-grid{ grid-template-columns:1fr; } }
+  .about-grid p{ font-size:13.5px; line-height:1.75; color:var(--ink-soft); }
+  .torn{
+    background:var(--paper-dark);
+    border:1.5px dashed var(--ink);
+    padding:18px;
+    font-size:12.5px;
+    line-height:1.7;
+  }
+  .torn dt{ font-family:'Permanent Marker', cursive; color:var(--tape-red); margin-top:10px; }
+  .torn dt:first-child{ margin-top:0; }
+  .torn dd{ margin:2px 0 0; color:var(--ink-soft); }
+
+  /* ---------- experience ---------- */
+  .exp-list{ display:flex; flex-direction:column; gap:18px; }
+  .exp-card ul{ list-style:none; padding:0; margin:0; font-size:13px; line-height:1.65; color:var(--ink-soft); }
+  .exp-card li{ position:relative; padding-left:18px; margin-bottom:8px; }
+  .exp-card li:last-child{ margin-bottom:0; }
+  .exp-card li::before{ content:"–"; position:absolute; left:0; color:var(--tape-red); }
+  .exp-card h3{ margin-bottom:12px; }
+
+  /* ---------- education ---------- */
+  .edu-grid{
+    display:grid;
+    grid-template-columns:1fr auto;
+    column-gap:18px;
+    row-gap:10px;
+    align-items:baseline;
+  }
+  .edu-grid dt{
+    font-family:'Space Mono', monospace;
+    font-weight:700;
+    color:var(--ink);
+    margin:0;
+    font-size:12.5px;
+  }
+  .edu-grid dd{
+    margin:0;
+    color:var(--tape-red);
+    font-family:'Permanent Marker', cursive;
+    font-size:13px;
+    white-space:nowrap;
+    text-align:right;
+  }
+  @media (max-width:560px){
+    .edu-grid{ grid-template-columns:1fr; row-gap:2px; }
+    .edu-grid dd{ text-align:left; margin-bottom:6px; }
+  }
+
+  /* ---------- footer ---------- */
+  footer{
+    padding:36px 0 50px;
+    text-align:center;
+  }
+  footer .scrawl{ font-size:18px; }
+  footer .fine{
+    margin-top:14px;
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:0.5px;
+  }
+</style>
 </head>
 <body>
 
-<aside id="sidebar">
-    <button class="btn" style="width:100%" onclick="teleport()">🎲 NEW RANDOM ROOM</button>
-    
-    <div class="sidebar-header">LIVE ROOMS (GLOBAL)</div>
-    <div id="discovered-list">
-        <div style="font-size: 0.8rem; opacity: 0.5; padding: 10px;">Searching...</div>
+<div id="counter">TAPE&nbsp;<span id="counterVal">00:00:00</span></div>
+
+<header class="wrap">
+  <p class="stamp">RUBBISH<em>GAMES</em></p>
+  <div class="handle-row">
+    <a class="chip" href="https://www.youtube.com/@RubbishGames" target="_blank" rel="noopener">▶ @RubbishGames</a>
+    <a class="chip alt" href="https://www.youtube.com/@RubbishGamesLive" target="_blank" rel="noopener">● @RubbishGamesLive</a>
+  </div>
+  <span class="scrawl">made from the scraps since 2016</span>
+  <p class="lede">Skate edits, Fortnite shorts and whatever's lying around. Two channels, one bin — this page is the highlight reel.</p>
+
+  <div class="clip">
+    <p class="clip-label">★ collage promo.mp4</p>
+    <div class="video-frame">
+      <iframe src="https://drive.google.com/file/d/1g_naoLKAr7RQMR36IGFZkSimOMTHFsTU/preview" allow="autoplay" allowfullscreen title="Collage promo video"></iframe>
     </div>
-
-    <div class="sidebar-header">HISTORY</div>
-    <div id="history-list"></div>
-    
-    <div style="margin-top:auto; font-size:0.6rem; opacity:0.4; text-align:center;">
-        Device: <span id="my-id-display"></span>
+    <div class="caption-row">
+      <span>SHOWREEL</span>
+      <span>PLAY ▸</span>
     </div>
-</aside>
+  </div>
+</header>
 
-<main id="main-chat">
-    <header>
-        <button id="menu-toggle" onclick="toggleMenu()">☰</button>
-        <div style="flex:1">
-            <div id="room-title" style="font-weight:bold; color:var(--accent); font-size:1.1rem;">...</div>
-            <div id="status" style="font-size: 0.65rem; color: #94a3b8;">Connecting...</div>
-        </div>
-    </header>
+<div class="hazard"></div>
 
-    <div id="chat-box"></div>
+<section class="wrap" id="channels">
+  <p class="section-tag">// the bins</p>
+  <h2>Two Channels</h2>
+  <div class="channels">
+    <div class="card">
+      <span class="pin"></span>
+      <span class="sub">YOUTUBE · MAIN</span>
+      <h3>RubbishGames</h3>
+      <p>Skate clips and Fortnite Shorts — the main channel, running since October 2016. Edited footage, montages and quick-cut shorts.</p>
+      <div class="tags">
+        <span class="tag">Skate</span>
+        <span class="tag">Fortnite Shorts</span>
+        <span class="tag">Editing</span>
+      </div>
+      <a class="btn" href="https://www.youtube.com/@RubbishGames" target="_blank" rel="noopener">Watch the channel</a>
+    </div>
+    <div class="card">
+      <span class="pin"></span>
+      <span class="sub">YOUTUBE · LIVE</span>
+      <h3>RubbishGamesLive</h3>
+      <p>The second channel for live streaming — longer sessions, unedited and in real time, away from the cutting room.</p>
+      <div class="tags">
+        <span class="tag">Live streams</span>
+        <span class="tag">Gaming</span>
+      </div>
+</section>
 
-    <footer>
-        <div class="input-row">
-            <input type="text" id="msg-input" placeholder="Paste message here..." readonly onclick="focusAndPaste(this)">
-            <button class="btn btn-paste" onclick="pasteAndSend()">📋 Paste & Send</button>
-        </div>
-        <div style="font-size: 0.7rem; text-align: center; opacity: 0.5;">Tip: Click "Paste & Send" to send text from your clipboard</div>
-    </footer>
-</main>
+<div class="hazard"></div>
+
+<section class="wrap" id="server">
+  <p class="section-tag">// side project</p>
+  <h2>ScraplandsSMP</h2>
+  <div class="card" style="max-width:560px;">
+    <span class="pin"></span>
+    <span class="sub">MINECRAFT · SURVIVAL SMP</span>
+    <h3>Scraplands</h3>
+    <p>A survival world I run for me and my mates — Java and Bedrock players on the same map, hosted through Aternos. Less about being public, more about having somewhere of our own to build and mess about in.</p>
+    <div class="tags">
+      <span class="tag">Survival SMP</span>
+      <span class="tag">Java + Bedrock</span>
+      <span class="tag">Self-hosted</span>
+    </div>
+    <p style="font-size:11px; color:var(--muted); letter-spacing:0.5px; margin:0;">SERVER · scraplandssmp.aternos.me</p>
+  </div>
+</section>
+
+<div class="hazard"></div>
+
+<section class="wrap" id="cv">
+  <p class="section-tag">// paper trail</p>
+  <h2>Skills &amp; Experience</h2>
+
+  <div class="tags" style="margin-bottom:32px;">
+    <span class="tag">IT Skills</span>
+    <span class="tag">Videographer</span>
+  </div>
+
+  <div class="exp-list">
+    <div class="card exp-card">
+      <span class="pin"></span>
+      <span class="sub">PREVIOUS · UNTIL 15 OCT 2025</span>
+      <h3>WeeeCharity, Warrington</h3>
+      <ul>
+        <li><strong>Recycling Room</strong> — taking apart electrical equipment for recycling, using hand tools safely.</li>
+        <li><strong>Data wiping</strong> — removing RAM and hard drives from laptops.</li>
+      </ul>
+    </div>
+    <div class="card exp-card">
+      <span class="pin"></span>
+      <span class="sub">PREVIOUS</span>
+      <h3>The Engine Rooms, Warrington</h3>
+      <ul>
+        <li><strong>Administrative</strong> — Excel, Word and Reslynks, working with equipment efficiently.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 style="margin-top:46px;">Education</h2>
+  <dl class="torn edu-grid">
+    <dt>BTEC Travel and Tourism</dt><dd>P2</dd>
+    <dt>CNAT Creative iMedia</dt><dd>U</dd>
+    <dt>EL/B Science (Single Award)</dt><dd>3</dd>
+    <dt>EL/B STEP UP to English</dt><dd>2</dd>
+    <dt>EL/B History (Postal Moderation)</dt><dd>1</dd>
+    <dt>EL/B Mathematics (Postal Moderation)</dt><dd>2</dd>
+    <dt>GCSE Combined Science</dt><dd>11</dd>
+    <dt>GCSE Mathematics</dt><dd>U</dd>
+    <dt>GCSE Religious Studies</dt><dd>U</dd>
+    <dt>GCSE English Language</dt><dd>1</dd>
+    <dt>GCSE English Literature</dt><dd>—</dd>
+    <dt>Prep for Employment</dt><dd>—</dd>
+  </dl>
+</section>
+
+<section class="wrap" id="about">
+  <p class="section-tag">// the bit at the back of the zine</p>
+  <h2>About</h2>
+  <div class="about-grid">
+    <p>I run RubbishGames — a small YouTube setup split across two channels, one for edited skate and Fortnite content, one for live streaming. I've been doing this since 2016, picking up editing, filming and channel management along the way without any of it being especially fancy. This page is the whole portfolio: the showreel up top is the kind of editing I do, and the channels are where the rest of it lives.</p>
+    <dl class="torn">
+      <dt>Based</dt>
+      <dd>Warrington, UK</dd>
+      <dt>Background</dt>
+      <dd>Media Studies</dd>
+      <dt>Doing this since</dt>
+      <dd>October 2016</dd>
+      <dt>Focus</dt>
+      <dd>Video editing, Skate &amp; Fortnite Shorts, live streaming</dd>
+    </dl>
+  </div>
+</section>
+
+<div class="hazard"></div>
+
+<footer class="wrap">
+  <span class="scrawl">cheers for watching ✌</span>
+  <p class="fine">RubbishGames — @RubbishGames &amp; @RubbishGamesLive on YouTube</p>
+  <p class="fine"><a href="mailto:BenJaminljones04@proton.me">BenJaminljones04@proton.me</a> · Warrington, UK</p>
+</footer>
 
 <script>
-    const seed = window.location.hash.substring(1) || Math.random().toString(36).substring(7);
-    if (!window.location.hash) window.location.hash = seed;
-    document.getElementById('room-title').innerText = "SEED: " + seed;
-
-    const deviceId = localStorage.getItem('chat_id') || 'ID-' + Math.random().toString(36).substring(2, 7).toUpperCase();
-    localStorage.setItem('chat_id', deviceId);
-    document.getElementById('my-id-display').innerText = deviceId;
-
-    let peer = null;
-    const connections = {};
-    const discoveredRooms = new Set();
-
-    // --- PASTE LOGIC ---
-    async function pasteAndSend() {
-        try {
-            const text = await navigator.clipboard.readText();
-            if (text) {
-                sendMessage(text);
-            }
-        } catch (err) {
-            alert("Please allow clipboard access or paste manually into the box.");
-        }
+  // signature: a "tape counter" that ticks up like a VHS deck as you scroll the page
+  (function(){
+    var el = document.getElementById('counterVal');
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function pad(n){ return String(n).padStart(2,'0'); }
+    function update(){
+      var doc = document.documentElement;
+      var scrollTop = doc.scrollTop || document.body.scrollTop;
+      var max = (doc.scrollHeight - doc.clientHeight) || 1;
+      var pct = Math.min(1, Math.max(0, scrollTop / max));
+      var totalSeconds = Math.floor(pct * 3599); // pretend "tape" is under an hour
+      var h = Math.floor(totalSeconds/3600);
+      var m = Math.floor((totalSeconds%3600)/60);
+      var s = totalSeconds%60;
+      el.textContent = pad(h)+':'+pad(m)+':'+pad(s);
     }
-
-    // --- P2P CORE ---
-    function initPeer(slot) {
-        const peerId = `room-${seed}-slot-${slot}`;
-        peer = new Peer(peerId);
-
-        peer.on('open', () => {
-            updateStatus(`Online (Slot ${slot})`, "#4ade80");
-            saveHistory(seed);
-            
-            // Connect to others in this specific seed
-            for(let i=0; i<8; i++) {
-                if(i !== slot) setupConn(peer.connect(`room-${seed}-slot-${i}`));
-            }
-
-            // Global Discovery: Signal presence to 'lobby' room
-            setInterval(() => {
-                const lobbyConn = peer.connect('room-lobby-slot-0');
-                lobbyConn.on('open', () => {
-                    lobbyConn.send({ type: 'HEARTBEAT', room: seed });
-                    setTimeout(() => lobbyConn.close(), 500);
-                });
-            }, 8000);
-        });
-
-        peer.on('connection', (conn) => {
-            // If we are slot-0, we act as a discovery node
-            conn.on('data', data => {
-                if (data.type === 'HEARTBEAT') updateDiscovery(data.room);
-                if (data.msg) appendMessage(data.user, data.msg, 'them');
-            });
-            if (!data.type) connections[conn.peer] = conn;
-        });
-
-        peer.on('error', (err) => {
-            if (err.type === 'unavailable-id') initPeer(slot + 1);
-        });
+    if(!reduce){
+      document.addEventListener('scroll', update, {passive:true});
     }
-
-    function setupConn(conn) {
-        conn.on('data', (data) => {
-            if (data.msg) appendMessage(data.user, data.msg, 'them');
-        });
-        connections[conn.peer] = conn;
-    }
-
-    function sendMessage(text) {
-        if (!text) return;
-        Object.values(connections).forEach(c => c.open && c.send({user: deviceId, msg: text}));
-        appendMessage('Me', text, 'me');
-    }
-
-    function appendMessage(user, text, type) {
-        const box = document.getElementById('chat-box');
-        const div = document.createElement('div');
-        div.className = `msg ${type}`;
-        div.innerHTML = `<span class="sender">${user}</span>${text}`;
-        box.appendChild(div);
-        box.scrollTop = box.scrollHeight;
-    }
-
-    function updateDiscovery(roomName) {
-        if (roomName === 'lobby' || roomName === seed) return;
-        discoveredRooms.add(roomName);
-        const list = document.getElementById('discovered-list');
-        list.innerHTML = Array.from(discoveredRooms).map(r => `
-            <div class="room-item" onclick="joinRoom('${r}')"># ${r} <span class="tag-live">LIVE</span></div>
-        `).join('');
-    }
-
-    function saveHistory(s) {
-        let h = JSON.parse(localStorage.getItem('chat_h') || '[]');
-        if (!h.includes(s)) h.unshift(s);
-        localStorage.setItem('chat_h', JSON.stringify(h.slice(0, 5)));
-        document.getElementById('history-list').innerHTML = h.map(r => `<div class="room-item" onclick="joinRoom('${r}')"># ${r}</div>`).join('');
-    }
-
-    function toggleMenu() { document.getElementById('sidebar').classList.toggle('open'); }
-    function joinRoom(r) { window.location.hash = r; location.reload(); }
-    function teleport() { joinRoom(Math.random().toString(36).substring(7)); }
-    function updateStatus(txt, color) { const s = document.getElementById('status'); s.innerText = txt; s.style.color = color; }
-
-    initPeer(0);
+    update();
+  })();
 </script>
+
 </body>
 </html>
