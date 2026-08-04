@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat — RubbishGames</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Permanent+Marker&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#E9E2CF;
+    --paper-dark:#DCD3B9;
+    --ink:#1B1A17;
+    --ink-soft:#3A362E;
+    --tape-red:#C73E3A;
+    --highlight:#D8E84A;
+    --muted:#7A7466;
+    --line:#1B1A1733;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Space Mono', monospace;
+    background-image:radial-gradient(var(--ink-soft) 0.6px, transparent 0.6px);
+    background-size:18px 18px;
+    background-attachment:fixed;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+
+  ::selection{ background:var(--highlight); color:var(--ink); }
+  a{ color:inherit; }
+  a:focus-visible, button:focus-visible, input:focus-visible{
+    outline:3px solid var(--tape-red);
+    outline-offset:2px;
+  }
+
+  .wrap{ max-width:820px; margin:0 auto; padding:0 24px; width:100%; }
+
+  .hazard{
+    height:14px;
+    background:repeating-linear-gradient(45deg, var(--ink) 0 16px, var(--highlight) 16px 32px);
+    border-top:2px solid var(--ink);
+    border-bottom:2px solid var(--ink);
+  }
+
+  header.page-head{ padding:36px 0 20px; }
+  .stamp-sm{
+    font-family:'Anton', sans-serif;
+    font-size:clamp(28px, 6vw, 48px);
+    line-height:0.9;
+    letter-spacing:-1px;
+    text-transform:uppercase;
+    margin:0 0 6px;
+    transform:rotate(-1deg);
+  }
+  .stamp-sm em{
+    font-style:normal;
+    color:var(--paper);
+    background:var(--tape-red);
+    padding:0 8px;
+    box-decoration-break:clone;
+    -webkit-box-decoration-break:clone;
+  }
+  .scrawl{
+    font-family:'Permanent Marker', cursive;
+    color:var(--tape-red);
+    font-size:14px;
+    transform:rotate(-1deg);
+    display:inline-block;
+  }
+
+  /* ---------- tab nav (matches main site) ---------- */
+  .tabnav{
+    position:sticky;
+    top:0;
+    z-index:40;
+    background:var(--paper);
+    border-top:2px solid var(--ink);
+    border-bottom:2px solid var(--ink);
+    box-shadow:0 4px 0 var(--line);
+  }
+  .tabnav-inner{
+    display:flex;
+    gap:8px;
+    padding:10px 24px;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .tabnav-inner::-webkit-scrollbar{ display:none; }
+  .tab{
+    flex:0 0 auto;
+    font-family:'Space Mono', monospace;
+    font-weight:700;
+    font-size:11.5px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    text-decoration:none;
+    color:var(--ink);
+    background:var(--paper-dark);
+    border:1.5px solid var(--ink);
+    padding:8px 14px;
+    box-shadow:3px 3px 0 var(--ink);
+    transition:transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    transform:rotate(-0.6deg);
+  }
+  .tab:nth-child(2n){ transform:rotate(0.6deg); }
+  .tab:hover{ transform:translate(-2px,-2px) rotate(-0.6deg); box-shadow:5px 5px 0 var(--ink); }
+  .tab.active{
+    background:var(--highlight);
+    transform:translate(-2px,-2px) rotate(0deg);
+    box-shadow:3px 3px 0 var(--tape-red);
+  }
+
+  /* ---------- chat panel ---------- */
+  main{ flex:1; display:flex; flex-direction:column; padding:28px 0 20px; }
+
+  .status-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:14px;
+    font-size:11px;
+    letter-spacing:0.5px;
+    color:var(--muted);
+  }
+  .status-dot{
+    display:inline-block;
+    width:8px; height:8px;
+    border-radius:50%;
+    background:var(--muted);
+    margin-right:6px;
+  }
+  .status-dot.live{ background:#3a8a4a; }
+  .status-dot.off{ background:var(--tape-red); }
+
+  .chat-frame{
+    background:var(--paper-dark);
+    border:1.5px solid var(--ink);
+    box-shadow:6px 6px 0 var(--ink);
+    display:flex;
+    flex-direction:column;
+    height:min(60vh, 560px);
+    min-height:340px;
+  }
+
+  #messages{
+    flex:1;
+    overflow-y:auto;
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+
+  .msg{
+    max-width:82%;
+    background:var(--paper);
+    border:1.5px solid var(--ink);
+    padding:8px 12px;
+    font-size:13px;
+    line-height:1.5;
+    box-shadow:3px 3px 0 var(--line);
+    word-wrap:break-word;
+    align-self:flex-start;
+  }
+  .msg.mine{
+    align-self:flex-end;
+    background:var(--highlight);
+  }
+  .msg .who{
+    display:block;
+    font-family:'Permanent Marker', cursive;
+    color:var(--tape-red);
+    font-size:12px;
+    margin-bottom:2px;
+  }
+  .msg .when{
+    display:inline-block;
+    margin-left:8px;
+    font-size:10px;
+    color:var(--muted);
+  }
+  .msg-system{
+    align-self:center;
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:0.5px;
+    font-style:italic;
+  }
+
+  .composer{
+    display:flex;
+    gap:10px;
+    padding:12px;
+    border-top:1.5px solid var(--ink);
+    background:var(--paper);
+  }
+  .composer input[type=text]{
+    flex:1;
+    font-family:'Space Mono', monospace;
+    font-size:13px;
+    padding:10px 12px;
+    border:1.5px solid var(--ink);
+    background:var(--paper);
+    color:var(--ink);
+  }
+  .composer button{
+    font-family:'Space Mono', monospace;
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:var(--paper);
+    background:var(--ink);
+    border:1.5px solid var(--ink);
+    padding:0 18px;
+    cursor:pointer;
+  }
+  .composer button:hover{ background:var(--tape-red); border-color:var(--tape-red); }
+  .composer button:disabled{ opacity:0.5; cursor:not-allowed; }
+
+  .hint{ margin-top:10px; font-size:11px; color:var(--muted); }
+
+  /* ---------- name gate ---------- */
+  .gate{
+    background:var(--paper-dark);
+    border:1.5px solid var(--ink);
+    box-shadow:6px 6px 0 var(--ink);
+    padding:24px;
+    max-width:420px;
+    margin:0 auto;
+  }
+  .gate h2{
+    font-family:'Anton', sans-serif;
+    text-transform:uppercase;
+    font-size:22px;
+    margin:0 0 12px;
+  }
+  .gate p{ font-size:12.5px; color:var(--ink-soft); line-height:1.6; margin:0 0 16px; }
+  .gate input[type=text]{
+    width:100%;
+    font-family:'Space Mono', monospace;
+    font-size:13px;
+    padding:10px 12px;
+    border:1.5px solid var(--ink);
+    background:var(--paper);
+    color:var(--ink);
+    margin-bottom:12px;
+  }
+  .gate button{
+    width:100%;
+    font-family:'Space Mono', monospace;
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:var(--paper);
+    background:var(--ink);
+    border:1.5px solid var(--ink);
+    padding:11px;
+    cursor:pointer;
+  }
+  .gate button:hover{ background:var(--tape-red); border-color:var(--tape-red); }
+  .gate .error{ color:var(--tape-red); font-size:11.5px; margin:-6px 0 12px; display:none; }
+
+  #chat-app{ display:none; }
+
+  /* ---------- setup notice (only shows if Firebase isn't configured) ---------- */
+  .setup-notice{
+    border:1.5px dashed var(--tape-red);
+    background:#f3e3c9;
+    padding:16px;
+    font-size:12.5px;
+    line-height:1.7;
+    color:var(--ink-soft);
+    margin-bottom:20px;
+  }
+  .setup-notice strong{ color:var(--ink); }
+  .setup-notice code{
+    background:var(--ink);
+    color:var(--paper);
+    padding:1px 5px;
+    font-size:11.5px;
+  }
+
+  footer{ padding:24px 0 40px; text-align:center; }
+  footer .fine{ font-size:11px; color:var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="hazard"></div>
+
+<header class="page-head wrap">
+  <p class="stamp-sm">LIVE <em>CHAT</em></p>
+  <span class="scrawl">say something (anything) ✌</span>
+</header>
+
+<nav class="tabnav" aria-label="Section navigation">
+  <div class="tabnav-inner">
+    <a class="tab" href="index.html#channels">Channels</a>
+    <a class="tab" href="index.html#server">Server</a>
+    <a class="tab" href="index.html#cv">CV</a>
+    <a class="tab" href="index.html#about">About</a>
+    <a class="tab active" href="chat.html">Chat ▸</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <!-- Shown only if the Firebase config below hasn't been filled in -->
+  <div id="setup-notice" class="setup-notice" style="display:none;">
+    <strong>Chat isn't wired up yet.</strong> This page needs a free
+    <a href="https://console.firebase.google.com" target="_blank" rel="noopener" style="color:var(--tape-red); text-decoration:underline;">Firebase</a>
+    project to work: create one, enable <strong>Realtime Database</strong> (start in test mode),
+    then paste your project's config into the <code>firebaseConfig</code> object near the bottom of
+    <code>chat.html</code>.
+  </div>
+
+  <!-- Name gate -->
+  <div id="gate" class="gate">
+    <h2>Pick a handle</h2>
+    <p>No account needed — just a name so people know who's talking. Anyone with this link can read and post here.</p>
+    <p class="error" id="gate-error">Enter a name (2–20 characters).</p>
+    <input type="text" id="name-input" maxlength="20" placeholder="e.g. Benji" autocomplete="off">
+    <button id="gate-submit">Enter chat room</button>
+  </div>
+
+  <!-- Chat app -->
+  <div id="chat-app">
+    <div class="status-row">
+      <span><span class="status-dot" id="status-dot"></span><span id="status-text">Connecting…</span></span>
+      <span id="whoami"></span>
+    </div>
+
+    <div class="chat-frame">
+      <div id="messages" role="log" aria-live="polite"></div>
+      <form class="composer" id="composer">
+        <input type="text" id="msg-input" maxlength="500" placeholder="Type a message…" autocomplete="off">
+        <button type="submit" id="send-btn">Send</button>
+      </form>
+    </div>
+    <p class="hint">Public and unmoderated — don't post anything you wouldn't want strangers to see. Messages are shared with everyone currently on this page.</p>
+  </div>
+
+</main>
+
+<div class="hazard"></div>
+
+<footer class="wrap">
+  <p class="fine"><a href="index.html">← back to RubbishGames</a></p>
+</footer>
+
+<!-- Firebase (client SDK — no server needed) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+(function(){
+
+  // ============================================================
+  // 1) PASTE YOUR FIREBASE CONFIG HERE
+  //    Firebase console → Project settings → General → Your apps → SDK setup and config
+  //    Also: Realtime Database → Create Database → start in test mode (or write proper rules).
+  // ============================================================
+  var firebaseConfig = {
+    apiKey: "",
+    authDomain: "",
+    databaseURL: "",
+    projectId: "",
+    storageBucket: "",
+    messagingSenderId: "",
+    appId: ""
+  };
+  // ============================================================
+
+  var configured = !!(firebaseConfig.apiKey && firebaseConfig.databaseURL);
+  var setupNotice = document.getElementById('setup-notice');
+  var gate = document.getElementById('gate');
+  var chatApp = document.getElementById('chat-app');
+  var statusDot = document.getElementById('status-dot');
+  var statusText = document.getElementById('status-text');
+
+  if(!configured){
+    setupNotice.style.display = 'block';
+    gate.style.display = 'none';
+    statusText.textContent = 'Not connected';
+    return;
+  }
+
+  firebase.initializeApp(firebaseConfig);
+  var db = firebase.database();
+  var messagesRef = db.ref('messages');
+
+  function escapeHtml(str){
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function formatTime(ts){
+    var d = new Date(ts);
+    var h = d.getHours(), m = d.getMinutes();
+    var ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return h + ':' + String(m).padStart(2,'0') + ' ' + ampm;
+  }
+
+  // ---------- name gate ----------
+  var nameInput = document.getElementById('name-input');
+  var gateSubmit = document.getElementById('gate-submit');
+  var gateError = document.getElementById('gate-error');
+  var whoami = document.getElementById('whoami');
+  var myName = sessionStorage.getItem('rg-chat-name') || '';
+
+  function enterChat(name){
+    myName = name;
+    sessionStorage.setItem('rg-chat-name', name);
+    gate.style.display = 'none';
+    chatApp.style.display = 'block';
+    whoami.textContent = 'posting as ' + name;
+    initChat();
+  }
+
+  if(myName){
+    enterChat(myName);
+  } else {
+    gateSubmit.addEventListener('click', function(){
+      var v = nameInput.value.trim();
+      if(v.length < 2 || v.length > 20){
+        gateError.style.display = 'block';
+        return;
+      }
+      gateError.style.display = 'none';
+      enterChat(v);
+    });
+    nameInput.addEventListener('keydown', function(e){
+      if(e.key === 'Enter') gateSubmit.click();
+    });
+  }
+
+  // ---------- chat logic ----------
+  function initChat(){
+    var messagesEl = document.getElementById('messages');
+    var composer = document.getElementById('composer');
+    var msgInput = document.getElementById('msg-input');
+    var sendBtn = document.getElementById('send-btn');
+
+    db.ref('.info/connected').on('value', function(snap){
+      if(snap.val() === true){
+        statusDot.className = 'status-dot live';
+        statusText.textContent = 'Live';
+      } else {
+        statusDot.className = 'status-dot off';
+        statusText.textContent = 'Reconnecting…';
+      }
+    });
+
+    // only load the most recent 100 messages
+    messagesRef.limitToLast(100).on('child_added', function(snap){
+      var m = snap.val();
+      if(!m || !m.text) return;
+      var div = document.createElement('div');
+      var mine = m.name === myName;
+      div.className = 'msg' + (mine ? ' mine' : '');
+      div.innerHTML =
+        '<span class="who">' + escapeHtml(m.name) + '</span>' +
+        escapeHtml(m.text) +
+        '<span class="when">' + formatTime(m.ts || Date.now()) + '</span>';
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    });
+
+    composer.addEventListener('submit', function(e){
+      e.preventDefault();
+      var text = msgInput.value.trim();
+      if(!text) return;
+      sendBtn.disabled = true;
+      messagesRef.push({
+        name: myName,
+        text: text.slice(0, 500),
+        ts: firebase.database.ServerValue.TIMESTAMP
+      }).then(function(){
+        msgInput.value = '';
+        sendBtn.disabled = false;
+        msgInput.focus();
+      }).catch(function(err){
+        sendBtn.disabled = false;
+        console.error('Send failed:', err);
+      });
+    });
+  }
+
+})();
+</script>
+
+</body>
+</html>
