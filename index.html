@@ -196,6 +196,54 @@
     letter-spacing:0.5px;
   }
 
+  /* ---------- tab nav ---------- */
+  .tabnav{
+    position:sticky;
+    top:0;
+    z-index:40;
+    background:var(--paper);
+    border-top:2px solid var(--ink);
+    border-bottom:2px solid var(--ink);
+    box-shadow:0 4px 0 var(--line);
+  }
+  .tabnav-inner{
+    display:flex;
+    gap:8px;
+    padding:10px 24px;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .tabnav-inner::-webkit-scrollbar{ display:none; }
+  .tab{
+    flex:0 0 auto;
+    font-family:'Space Mono', monospace;
+    font-weight:700;
+    font-size:11.5px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    text-decoration:none;
+    color:var(--ink);
+    background:var(--paper-dark);
+    border:1.5px solid var(--ink);
+    padding:8px 14px;
+    box-shadow:3px 3px 0 var(--ink);
+    transition:transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease;
+    transform:rotate(-0.6deg);
+  }
+  .tab:nth-child(2n){ transform:rotate(0.6deg); }
+  .tab:hover{ transform:translate(-2px,-2px) rotate(-0.6deg); box-shadow:5px 5px 0 var(--ink); }
+  .tab:nth-child(2n):hover{ transform:translate(-2px,-2px) rotate(0.6deg); }
+  .tab.active{
+    background:var(--highlight);
+    color:var(--ink);
+    transform:translate(-2px,-2px) rotate(0deg);
+    box-shadow:3px 3px 0 var(--tape-red);
+  }
+  @media (max-width:640px){
+    .tabnav-inner{ padding:8px 16px; gap:6px; }
+    .tab{ font-size:10.5px; padding:7px 11px; }
+  }
+
   /* ---------- sections ---------- */
   section{ padding:56px 0; }
   .section-tag{
@@ -385,6 +433,16 @@
 
 <div class="hazard"></div>
 
+<nav class="tabnav" aria-label="Section navigation">
+  <div class="tabnav-inner">
+    <a class="tab" href="#channels" data-tab="channels">Channels</a>
+    <a class="tab" href="#server" data-tab="server">Server</a>
+    <a class="tab" href="#cv" data-tab="cv">CV</a>
+    <a class="tab" href="#about" data-tab="about">About</a>
+    <a class="tab" href="chat.html">Chat ▸</a>
+  </div>
+</nav>
+
 <section class="wrap" id="channels">
   <p class="section-tag">// the bins</p>
   <h2>Two Channels</h2>
@@ -523,6 +581,37 @@
       document.addEventListener('scroll', update, {passive:true});
     }
     update();
+  })();
+
+  // tab nav: highlight active section as you scroll, smooth-scroll on click
+  (function(){
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+    var sections = tabs.map(function(t){
+      return document.getElementById(t.getAttribute('data-tab'));
+    });
+    var tabnav = document.querySelector('.tabnav');
+
+    function setActive(id){
+      tabs.forEach(function(t){
+        t.classList.toggle('active', t.getAttribute('data-tab') === id);
+      });
+    }
+
+    if('IntersectionObserver' in window){
+      var navHeight = tabnav ? tabnav.offsetHeight : 0;
+      var observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            setActive(entry.target.id);
+          }
+        });
+      }, { rootMargin: '-' + (navHeight + 10) + 'px 0px -70% 0px', threshold: 0 });
+      sections.forEach(function(s){ if(s) observer.observe(s); });
+    }
+
+    tabs.forEach(function(t){
+      t.addEventListener('click', function(){ setActive(t.getAttribute('data-tab')); });
+    });
   })();
 </script>
 
